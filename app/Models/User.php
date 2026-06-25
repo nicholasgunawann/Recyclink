@@ -11,6 +11,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
+use Illuminate\Support\Facades\Cache;
+
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable, SoftDeletes, HasRoles;
@@ -39,6 +41,28 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isSeller(): bool { return $this->hasRole('seller'); }
     public function isBuyer(): bool  { return $this->hasRole('buyer'); }
     public function isAdmin(): bool  { return $this->hasRole('admin'); }
+
+    // ponytail: cached seller summary stats
+    public function getCachedSellerSummary(): array
+    {
+        return Cache::remember("seller_dashboard_summary_{$this->id}", rand(120, 300), function () {
+            return [
+                'listings_count' => $this->wasteListings()->count(),
+                'orders_count' => $this->sellerOrders()->count(),
+            ];
+        });
+    }
+
+    // ponytail: cached buyer summary stats
+    public function getCachedBuyerSummary(): array
+    {
+        return Cache::remember("buyer_dashboard_summary_{$this->id}", rand(120, 300), function () {
+            return [
+                'orders_count' => $this->buyerOrders()->count(),
+                'favorites_count' => $this->favoriteListings()->count(),
+            ];
+        });
+    }
 
     // ── Relationships ──────────────────────────────────────────────────────────
 

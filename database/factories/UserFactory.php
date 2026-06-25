@@ -50,7 +50,7 @@ class UserFactory extends Factory
             $user->assignRole('seller');
 
             \App\Models\SellerProfile::factory()->create(['user_id' => $user->id]);
-            \App\Models\SellerWallet::create(['user_id' => $user->id]);
+            \App\Models\SellerWallet::create(['seller_id' => $user->id]);
         });
     }
 

@@ -9,9 +9,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use Illuminate\Support\Facades\Cache;
+
 class Order extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        $clearCache = function ($order) {
+            // ponytail: invalidate seller, buyer and admin dashboard caches on order changes
+            Cache::forget('admin_dashboard_summary');
+            Cache::forget("seller_dashboard_summary_{$order->seller_id}");
+            Cache::forget("buyer_dashboard_summary_{$order->buyer_id}");
+        };
+
+        static::created($clearCache);
+        static::updated($clearCache);
+        static::deleted($clearCache);
+    }
 
     public const STATUS_PENDING = 'pending';
     public const STATUS_ACCEPTED = 'accepted';

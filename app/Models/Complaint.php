@@ -6,9 +6,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use Illuminate\Support\Facades\Cache;
+
 class Complaint extends Model
 {
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        $clearCache = function () {
+            // ponytail: invalidate admin dashboard cache on complaint changes
+            Cache::forget('admin_dashboard_summary');
+        };
+
+        static::created($clearCache);
+        static::updated($clearCache);
+        static::deleted($clearCache);
+    }
 
     public const STATUS_OPEN = 'open';
     public const STATUS_UNDER_REVIEW = 'under_review';

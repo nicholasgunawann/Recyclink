@@ -8,9 +8,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
+
 class WasteListing extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected static function booted(): void
+    {
+        $clearCache = function () {
+            // ponytail: clear marketplace cache tags when listing changes
+            Cache::tags(['marketplace_listings'])->flush();
+        };
+
+        static::created($clearCache);
+        static::updated($clearCache);
+        static::deleted($clearCache);
+    }
 
     public const VERIFICATION_PENDING = 'pending';
     public const VERIFICATION_APPROVED = 'approved';

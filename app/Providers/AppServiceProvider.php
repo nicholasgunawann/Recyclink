@@ -4,6 +4,16 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
+use App\Models\WasteListing;
+use App\Policies\WasteListingPolicy;
+use App\Models\Order;
+use App\Policies\OrderPolicy;
+use App\Models\Complaint;
+use App\Policies\ComplaintPolicy;
+use App\Models\EducationContent;
+use App\Policies\EducationContentPolicy;
+use Illuminate\Support\Facades\Gate;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -19,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::policy(WasteListing::class, WasteListingPolicy::class);
+        Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(Complaint::class, ComplaintPolicy::class);
+        Gate::policy(EducationContent::class, EducationContentPolicy::class);
     }
 }

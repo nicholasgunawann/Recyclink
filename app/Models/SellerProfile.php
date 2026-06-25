@@ -28,5 +28,18 @@ class SellerProfile extends Model
 
     public function isVerified(): bool { return $this->verification_status === self::VERIFICATION_VERIFIED; }
 
+    protected static function booted(): void
+    {
+        static::created(function ($profile) {
+            // ponytail: automatically initialize wallet on seller profile creation
+            $profile->user->wallet()->firstOrCreate([], [
+                'balance' => 0.00,
+                'pending_balance' => 0.00,
+                'total_earned' => 0.00,
+                'total_withdrawn' => 0.00,
+            ]);
+        });
+    }
+
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
 }

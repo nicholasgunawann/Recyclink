@@ -13,6 +13,7 @@ class Withdrawal extends Model
     public const STATUS_PENDING = 'pending';
     public const STATUS_APPROVED = 'approved';
     public const STATUS_REJECTED = 'rejected';
+    public const STATUS_PAID = 'paid';
 
     protected $fillable = [
         'wallet_id', 'amount', 'bank_name', 'bank_account_number', 'bank_account_name',
@@ -32,7 +33,8 @@ class Withdrawal extends Model
     }
 
     public function isPending(): bool   { return $this->status === self::STATUS_PENDING; }
-    public function isCompleted(): bool { return $this->status === self::STATUS_APPROVED; }
+    public function isCompleted(): bool { return $this->status === self::STATUS_APPROVED || $this->status === self::STATUS_PAID; }
+    public function isPaid(): bool      { return $this->status === self::STATUS_PAID; }
 
     public function wallet(): BelongsTo   { return $this->belongsTo(SellerWallet::class, 'wallet_id'); }
     public function user(): BelongsTo     { return $this->belongsTo(User::class); }

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use Illuminate\Support\Facades\Cache;
+
 class WasteCategory extends Model
 {
     use HasFactory;
@@ -19,6 +21,25 @@ class WasteCategory extends Model
     protected function casts(): array
     {
         return ['is_active' => 'boolean'];
+    }
+
+    protected static function booted(): void
+    {
+        $clearCache = function () {
+            // ponytail: clear active categories cache on modifications
+            Cache::forget('waste_categories_active');
+        };
+
+        static::created($clearCache);
+        static::updated($clearCache);
+        static::deleted($clearCache);
+    }
+
+    public static function getActiveCached()
+    {
+        return Cache::remember('waste_categories_active', 3600, function () {
+            return static::active()->orderBy('sort_order')->get();
+        });
     }
 
     public function scopeActive($query)        { return $query->where('is_active', true); }
