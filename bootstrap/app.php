@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'seller.verified' => \App\Http\Middleware\EnsureSellerVerified::class,
             'order.participant' => \App\Http\Middleware\EnsureOrderParticipant::class,
             'conversation.participant' => \App\Http\Middleware\EnsureConversationParticipant::class,
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

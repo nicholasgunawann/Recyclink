@@ -54,15 +54,24 @@ class LoginController extends Controller implements HasMiddleware
     // ponytail: helper to redirect user based on role
     protected function redirectUser(User $user)
     {
+        if ($user->status === User::STATUS_PENDING) {
+            return redirect()->route('verification.pending');
+        }
+        if ($user->status === User::STATUS_INACTIVE || $user->status === User::STATUS_SUSPENDED) {
+            return redirect()->route('verification.rejected');
+        }
+        if ($user->roles->count() === 0) {
+            return redirect()->route('choose.role');
+        }
+        $fallback = route('home');
         if ($user->isAdmin()) {
-            return redirect()->route('admin.dashboard');
+            $fallback = route('admin.dashboard');
+        } elseif ($user->isSeller()) {
+            $fallback = route('seller.dashboard');
+        } elseif ($user->isBuyer()) {
+            $fallback = route('buyer.dashboard');
         }
-        if ($user->isSeller()) {
-            return redirect()->route('seller.dashboard');
-        }
-        if ($user->isBuyer()) {
-            return redirect()->route('buyer.dashboard');
-        }
-        return redirect()->route('home');
+        
+        return redirect()->intended($fallback);
     }
 }

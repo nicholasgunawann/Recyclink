@@ -50,6 +50,7 @@ Route::get('/education', [EducationController::class, 'index'])->name('education
 Route::get('/education/{educationContent:slug}', [EducationController::class, 'show'])->name('education.show');
 Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marketplace.index');
 Route::get('/marketplace/{wasteListing}', [MarketplaceController::class, 'show'])->name('marketplace.show');
+Route::get('/tentang', [HomeController::class, 'tentang'])->name('tentang');
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +63,43 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
+
+Route::get('/forgot-password', function () {
+    return view('auth.forgot-password');
+})->name('password.request');
+
+Route::get('/email/verify', function () {
+    return view('auth.verify-email');
+})->middleware('auth')->name('verification.notice');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/verification/pending', function () {
+        $user = auth()->user();
+        if ($user->isActive()) {
+            return redirect()->route('choose.role')->with('success', 'Verifikasi Anda berhasil! Silakan pilih peran Anda.');
+        }
+        if ($user->status === \App\Models\User::STATUS_INACTIVE || $user->status === \App\Models\User::STATUS_SUSPENDED) {
+            return redirect()->route('verification.rejected');
+        }
+        return view('auth.verification-pending');
+    })->name('verification.pending');
+
+    Route::get('/verification/rejected', function () {
+        $user = auth()->user();
+        if ($user->isActive()) {
+            return redirect()->route('choose.role');
+        }
+        if ($user->status === \App\Models\User::STATUS_PENDING) {
+            return redirect()->route('verification.pending');
+        }
+        return view('auth.verification-rejected', compact('user'));
+    })->name('verification.rejected');
+
+    Route::post('/verification/resubmit', [App\Http\Controllers\Auth\RegisterController::class, 'resubmitVerification'])->name('verification.resubmit');
+
+    Route::get('/choose-role', [RegisterController::class, 'showChooseRoleForm'])->name('choose.role');
+    Route::post('/choose-role', [RegisterController::class, 'storeRole'])->name('choose.role.store');
+});
 
 /*
 |--------------------------------------------------------------------------

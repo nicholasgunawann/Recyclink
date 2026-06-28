@@ -11,7 +11,7 @@ class EducationController extends Controller
     public function index()
     {
         $articles = EducationContent::published()->with(['admin', 'categories'])->latest()->paginate(9);
-        return view('public.education.index', compact('articles'));
+        return view('pages.edukasi.index', compact('articles'));
     }
 
     // ponytail: view article detail page

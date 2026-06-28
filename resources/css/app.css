@@ -6,4 +6,9 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* ── Recyclink Brand Colors ── */
+    --color-brand:       #7A9C59; /* Primary / Logo — bg-brand, text-brand, border-brand */
+    --color-brand-hover: #5E7F40; /* Hover state tombol — hover:bg-brand-hover               */
+    --color-brand-dark:  #2D4A22; /* Aksen gelap jika diperlukan                             */
 }

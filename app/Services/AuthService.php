@@ -29,26 +29,8 @@ class AuthService
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
                 'phone_number' => $data['phone_number'] ?? null,
-                'status' => User::STATUS_ACTIVE,
+                'status' => User::STATUS_PENDING,
             ]);
-
-            // Assign Spatie permission role
-            $user->assignRole($data['role']);
-
-            // Initialize default blank profile
-            if ($data['role'] === 'seller') {
-                $user->sellerProfile()->create([
-                    'business_name' => $data['name'],
-                    'address' => '',
-                    'city' => '',
-                ]);
-            } elseif ($data['role'] === 'buyer') {
-                $user->buyerProfile()->create([
-                    'company_name' => $data['name'],
-                    'address' => '',
-                    'city' => '',
-                ]);
-            }
 
             Auth::login($user);
             request()->session()->regenerate();
