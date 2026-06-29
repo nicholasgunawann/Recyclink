@@ -21,7 +21,6 @@ class SellerWithdrawalController extends Controller implements HasMiddleware
     {
         return [
             'auth',
-            'verified',
             'role:seller',
         ];
     }

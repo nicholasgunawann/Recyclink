@@ -36,7 +36,7 @@ class RegisterController extends Controller implements HasMiddleware
     {
         try {
             $user = $this->authService->register($request->validated());
-            return redirect()->route('verification.pending')->with('success', 'Pendaftaran berhasil! Akun Anda sedang diverifikasi.');
+            return $this->redirectUser($user)->with('success', 'Pendaftaran berhasil!');
         } catch (RecyclinkException $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
@@ -46,18 +46,52 @@ class RegisterController extends Controller implements HasMiddleware
     public function resubmitVerification(\Illuminate\Http\Request $request)
     {
         $user = $request->user();
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'phone_number' => 'nullable|string|max:20',
-        ]);
+            'address' => 'required|string',
+            'city' => 'required|string|max:100',
+            'province' => 'required|string|max:100',
+            'postal_code' => 'required|string|max:20',
+        ];
+
+        if ($user->hasRole('seller')) {
+            $rules['business_name'] = 'required|string|max:255';
+            $rules['business_type'] = 'nullable|string|max:100';
+        } elseif ($user->hasRole('buyer')) {
+            $rules['company_name'] = 'required|string|max:255';
+            $rules['industry_type'] = 'nullable|string|max:100';
+        }
+
+        $validated = $request->validate($rules);
 
         $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone_number' => $request->phone_number,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone_number' => $validated['phone_number'] ?? null,
             'status' => \App\Models\User::STATUS_PENDING,
         ]);
+
+        if ($user->hasRole('seller') && $user->sellerProfile) {
+            $user->sellerProfile()->update([
+                'business_name' => $validated['business_name'],
+                'business_type' => $validated['business_type'] ?? 'Perorangan',
+                'address' => $validated['address'],
+                'city' => $validated['city'],
+                'province' => $validated['province'],
+                'postal_code' => $validated['postal_code'],
+            ]);
+        } elseif ($user->hasRole('buyer') && $user->buyerProfile) {
+            $user->buyerProfile()->update([
+                'company_name' => $validated['company_name'],
+                'industry_type' => $validated['industry_type'] ?? 'Lainnya',
+                'address' => $validated['address'],
+                'city' => $validated['city'],
+                'province' => $validated['province'],
+                'postal_code' => $validated['postal_code'],
+            ]);
+        }
 
         return redirect()->route('verification.pending')->with('success', 'Formulir berhasil diperbarui! Mohon tunggu verifikasi selanjutnya.');
     }
@@ -114,15 +148,15 @@ class RegisterController extends Controller implements HasMiddleware
         if ($user->roles->count() === 0) {
             return redirect()->route('choose.role');
         }
-        $fallback = route('home');
+        
         if ($user->isAdmin()) {
-            $fallback = route('admin.dashboard');
+            return redirect()->route('admin.dashboard');
         } elseif ($user->isSeller()) {
-            $fallback = route('seller.dashboard');
+            return redirect()->route('seller.dashboard');
         } elseif ($user->isBuyer()) {
-            $fallback = route('buyer.dashboard');
+            return redirect()->route('buyer.dashboard');
         }
         
-        return redirect()->intended($fallback);
+        return redirect()->route('home');
     }
 }

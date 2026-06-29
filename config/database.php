@@ -59,10 +59,14 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // ponytail: persistent connection reduces overhead for remote DB; timeout relaxed for Railway proxy latency
+            'persistent' => true,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::ATTR_TIMEOUT => 60,
             ]) : [],
         ],
+
 
         'mariadb' => [
             'driver' => 'mariadb',

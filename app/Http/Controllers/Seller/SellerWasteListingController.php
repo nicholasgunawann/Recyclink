@@ -25,7 +25,6 @@ class SellerWasteListingController extends Controller implements HasMiddleware
     {
         return [
             'auth',
-            'verified',
             'role:seller',
         ];
     }

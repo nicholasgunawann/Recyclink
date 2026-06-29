@@ -22,7 +22,6 @@ class BuyerReviewController extends Controller implements HasMiddleware
     {
         return [
             'auth',
-            'verified',
             'role:buyer',
         ];
     }

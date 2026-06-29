@@ -42,7 +42,7 @@
                 <i data-lucide="heart" class="w-5 h-5"></i>
                 Tersimpan
             </a>
-            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+            <a href="{{ route('buyer.profile.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold {{ request()->routeIs('buyer.profile.*') ? 'bg-brand/10 text-brand' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} transition-colors">
                 <i data-lucide="user" class="w-5 h-5"></i>
                 Profil
             </a>
@@ -86,8 +86,14 @@
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-6 lg:p-10">
-            @yield('content')
+        <main class="flex-1 overflow-y-auto flex flex-col">
+            <div class="p-6 lg:p-10 flex-1">
+                @yield('content')
+            </div>
+            <!-- Footer -->
+            <footer class="py-5 text-center text-sm text-gray-500 border-t border-gray-200/60 bg-white">
+                &copy; {{ date('Y') }} Recyclink. Hak Cipta Dilindungi.
+            </footer>
         </main>
     </div>
 

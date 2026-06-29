@@ -23,7 +23,6 @@ class AdminEducationContentController extends Controller implements HasMiddlewar
     {
         return [
             'auth',
-            'verified',
             'role:admin',
         ];
     }

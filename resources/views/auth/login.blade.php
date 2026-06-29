@@ -98,8 +98,12 @@
                             <i data-lucide="lock" class="w-5 h-5 text-gray-400"></i>
                         </div>
                         <input type="password" name="password" id="password" required
-                               class="block w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-brand focus:border-brand transition-colors outline-none"
+                               class="block w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-brand focus:border-brand transition-colors outline-none"
                                placeholder="••••••••">
+                        <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors btn-toggle-password" data-target="password">
+                            <i data-lucide="eye" class="w-5 h-5 icon-eye"></i>
+                            <i data-lucide="eye-off" class="w-5 h-5 icon-eye-off hidden"></i>
+                        </button>
                     </div>
                     @error('password')
                         <p class="mt-1.5 text-sm text-red-500">{{ $message }}</p>
@@ -138,6 +142,28 @@
         </div>
     </div>
     
-    <script>lucide.createIcons();</script>
+    <script>
+        lucide.createIcons();
+        
+        // Password visibility toggle
+        document.querySelectorAll('.btn-toggle-password').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const input = document.getElementById(targetId);
+                const iconEye = this.querySelector('.icon-eye');
+                const iconEyeOff = this.querySelector('.icon-eye-off');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    iconEye.classList.add('hidden');
+                    iconEyeOff.classList.remove('hidden');
+                } else {
+                    input.type = 'password';
+                    iconEye.classList.remove('hidden');
+                    iconEyeOff.classList.add('hidden');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -14,7 +14,6 @@ class AdminUserController extends Controller implements HasMiddleware
     {
         return [
             'auth',
-            'verified',
             'role:admin',
         ];
     }
@@ -37,14 +36,52 @@ class AdminUserController extends Controller implements HasMiddleware
     public function updateStatus(Request $request, User $user)
     {
         try {
+            $protectedEmails = ['admin@recyclink.id', 'admin@recyclink.com'];
+            if (in_array($user->email, $protectedEmails) && $request->input('status') !== User::STATUS_ACTIVE) {
+                throw new RecyclinkException("Anda tidak dapat mengubah status akun Super Admin atau Admin Utama.");
+            }
+
             $status = $request->input('status', '');
             if (!in_array($status, [User::STATUS_ACTIVE, User::STATUS_INACTIVE, User::STATUS_SUSPENDED, User::STATUS_PENDING])) {
                 throw new RecyclinkException("Invalid status: {$status}");
             }
-            $user->update(['status' => $status]);
-            return redirect()->back()->with('success', 'User status updated successfully.');
+            
+            $updateData = ['status' => $status];
+            if ($request->has('rejection_reason')) {
+                $updateData['rejection_reason'] = $request->input('rejection_reason');
+            } elseif ($status === User::STATUS_ACTIVE) {
+                // Clear rejection reason if activated
+                $updateData['rejection_reason'] = null;
+            }
+            
+            $user->update($updateData);
+            return redirect()->back()->with('success', 'Status pengguna berhasil diperbarui.');
         } catch (RecyclinkException $e) {
             return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    // ponytail: delete user from database
+    public function destroy(User $user)
+    {
+        try {
+            $currentUser = auth()->user();
+
+            if ($user->id === $currentUser->id) {
+                throw new RecyclinkException("Anda tidak dapat menghapus akun Anda sendiri.");
+            }
+            
+            if ($user->email === 'admin@recyclink.id') {
+                throw new RecyclinkException("Akun Super Admin tidak dapat dihapus.");
+            }
+
+            if ($user->email === 'admin@recyclink.com' && $currentUser->email !== 'admin@recyclink.id') {
+                throw new RecyclinkException("Hanya Super Admin yang dapat menghapus akun Admin Utama.");
+            }
+            $user->forceDelete();
+            return redirect()->route('admin.users.index')->with('success', 'Pengguna berhasil dihapus secara permanen dari sistem.');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.users.index')->with('error', $e->getMessage());
         }
     }
 }

@@ -73,18 +73,30 @@ Route::get('/email/verify', function () {
 })->middleware('auth')->name('verification.notice');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/verification/pending', function () {
+    Route::get('/user/verifikasi/pending', function () {
         $user = auth()->user();
-        if ($user->isActive()) {
-            return redirect()->route('choose.role')->with('success', 'Verifikasi Anda berhasil! Silakan pilih peran Anda.');
-        }
         if ($user->status === \App\Models\User::STATUS_INACTIVE || $user->status === \App\Models\User::STATUS_SUSPENDED) {
             return redirect()->route('verification.rejected');
         }
-        return view('auth.verification-pending');
+        
+        // If active but already acknowledged (email_verified_at is not null), go to dashboard
+        if ($user->isActive() && $user->email_verified_at !== null) {
+            return redirect()->route('choose.role');
+        }
+        
+        return view('auth.verification-pending', compact('user'));
     })->name('verification.pending');
 
-    Route::get('/verification/rejected', function () {
+    Route::post('/user/verifikasi/acknowledge', function () {
+        $user = auth()->user();
+        if ($user->isActive()) {
+            $user->update(['email_verified_at' => now()]);
+            return redirect()->route('choose.role')->with('success', 'Selamat datang di Recyclink!');
+        }
+        return redirect()->route('verification.pending');
+    })->name('verification.acknowledge');
+
+    Route::get('/user/verifikasi/rejected', function () {
         $user = auth()->user();
         if ($user->isActive()) {
             return redirect()->route('choose.role');
@@ -95,10 +107,10 @@ Route::middleware(['auth'])->group(function () {
         return view('auth.verification-rejected', compact('user'));
     })->name('verification.rejected');
 
-    Route::post('/verification/resubmit', [App\Http\Controllers\Auth\RegisterController::class, 'resubmitVerification'])->name('verification.resubmit');
+    Route::post('/user/verifikasi/resubmit', [App\Http\Controllers\Auth\RegisterController::class, 'resubmitVerification'])->name('verification.resubmit');
 
-    Route::get('/choose-role', [RegisterController::class, 'showChooseRoleForm'])->name('choose.role');
-    Route::post('/choose-role', [RegisterController::class, 'storeRole'])->name('choose.role.store');
+    Route::get('/user/choose-role', [RegisterController::class, 'showChooseRoleForm'])->name('choose.role');
+    Route::post('/user/choose-role', [RegisterController::class, 'storeRole'])->name('choose.role.store');
 });
 
 /*
@@ -124,13 +136,14 @@ Route::middleware(['auth', 'active'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::group([
-    'prefix' => 'seller',
+    'prefix' => 'dashboard/user/seller',
     'as' => 'seller.',
     'middleware' => ['auth', 'active', 'role:seller']
 ], function () {
     Route::get('/dashboard', [SellerDashboardController::class, 'index'])->name('dashboard');
     
     // Seller Profile (Accessible with incomplete profile for edit/update)
+    Route::get('/profile', [SellerProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/edit', [SellerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [SellerProfileController::class, 'update'])->name('profile.update');
 
@@ -181,13 +194,14 @@ Route::group([
 |--------------------------------------------------------------------------
 */
 Route::group([
-    'prefix' => 'buyer',
+    'prefix' => 'dashboard/user/buyer',
     'as' => 'buyer.',
     'middleware' => ['auth', 'active', 'role:buyer']
 ], function () {
     Route::get('/dashboard', [BuyerDashboardController::class, 'index'])->name('dashboard');
     
     // Buyer Profile (Accessible with incomplete profile for edit/update)
+    Route::get('/profile', [BuyerProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/edit', [BuyerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [BuyerProfileController::class, 'update'])->name('profile.update');
 
@@ -225,7 +239,7 @@ Route::group([
 |--------------------------------------------------------------------------
 */
 Route::group([
-    'prefix' => 'admin',
+    'prefix' => 'dashboard/admin',
     'as' => 'admin.',
     'middleware' => ['auth', 'active', 'role:admin']
 ], function () {
@@ -235,6 +249,7 @@ Route::group([
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
     Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
     Route::patch('/users/{user}/status', [AdminUserController::class, 'updateStatus'])->name('users.updateStatus');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
     // Listing Verification
     Route::get('/listings/verification', [AdminListingVerificationController::class, 'index'])->name('listings.verification.index');

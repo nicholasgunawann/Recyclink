@@ -103,8 +103,14 @@
         </header>
 
         <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto p-6 lg:p-10">
-            @yield('content')
+        <main class="flex-1 overflow-y-auto flex flex-col">
+            <div class="p-6 lg:p-10 flex-1">
+                @yield('content')
+            </div>
+            <!-- Footer -->
+            <footer class="py-5 text-center text-sm text-gray-500 border-t border-gray-200/60 bg-white">
+                &copy; {{ date('Y') }} Recyclink. Hak Cipta Dilindungi.
+            </footer>
         </main>
     </div>
 
@@ -135,6 +141,7 @@
         closeBtn?.addEventListener('click', toggleSidebar);
         backdrop?.addEventListener('click', toggleSidebar);
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @stack('scripts')
 </body>
 </html>

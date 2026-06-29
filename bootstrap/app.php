@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // ponytail: extend PHP exec time only for HTTP requests (not artisan serve process itself)
+        $middleware->append(\App\Http\Middleware\ExtendExecutionTime::class);
+
         $middleware->alias([
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
             'profile.completed' => \App\Http\Middleware\EnsureProfileCompleted::class,

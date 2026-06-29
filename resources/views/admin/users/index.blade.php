@@ -41,7 +41,7 @@
                         <th class="px-6 py-4">Peran (Role)</th>
                         <th class="px-6 py-4">Status</th>
                         <th class="px-6 py-4">Tanggal Bergabung</th>
-                        <th class="px-6 py-4 text-right">Aksi</th>
+                        <th class="px-6 py-4 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -104,30 +104,114 @@
                             <td class="px-6 py-4 text-gray-500">
                                 {{ $user->created_at->format('d M Y') }}
                             </td>
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex items-center justify-end gap-2">
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
                                     
                                     <!-- Optional: Toggle Status Modal/Form -->
-                                    <form action="{{ route('admin.users.updateStatus', $user->id) }}" method="POST" class="inline-block">
-                                        @csrf
-                                        @method('PATCH')
-                                        @if($user->status === 'active')
-                                            <input type="hidden" name="status" value="suspended">
-                                            <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors tooltip" title="Tangguhkan Akun">
-                                                <i data-lucide="ban" class="w-4 h-4"></i>
-                                            </button>
+                                    @php
+                                        $isSuperAdmin = $user->email === 'admin@recyclink.id';
+                                        $isAdminUtama = $user->email === 'admin@recyclink.com';
+                                        $currentUserIsSuperAdmin = auth()->user()->email === 'admin@recyclink.id';
+                                        $isSelf = $user->id === auth()->id();
+                                        
+                                        $canUpdateStatus = !($isSuperAdmin || $isAdminUtama);
+                                        
+                                        $canDelete = false;
+                                        if (!$isSelf && !$isSuperAdmin) {
+                                            if ($isAdminUtama) {
+                                                $canDelete = $currentUserIsSuperAdmin;
+                                            } else {
+                                                $canDelete = true;
+                                            }
+                                        }
+                                    @endphp
+                                    
+                                    @if($canUpdateStatus)
+                                        @if($user->status === 'pending')
+                                            <form action="{{ route('admin.users.updateStatus', $user->id) }}" method="POST" class="inline-block">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="active">
+                                                <button type="submit" class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors tooltip" title="Terima (Verifikasi)">
+                                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('admin.users.updateStatus', $user->id) }}" method="POST" class="inline-block form-reject-user">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="inactive">
+                                                <input type="hidden" name="rejection_reason" class="rejection-reason-input" value="">
+                                                <button type="button" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors tooltip btn-reject-user" title="Tolak Pendaftaran">
+                                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                                </button>
+                                            </form>
                                         @else
-                                            <input type="hidden" name="status" value="active">
-                                            <button type="submit" class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors tooltip" title="Aktifkan Akun">
-                                                <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                            </button>
+                                            <form action="{{ route('admin.users.updateStatus', $user->id) }}" method="POST" class="inline-block form-suspend-user">
+                                            @csrf
+                                            @method('PATCH')
+                                            @if($user->status === 'active')
+                                                <input type="hidden" name="status" value="suspended">
+                                                <input type="hidden" name="rejection_reason" class="suspension-reason-input" value="">
+                                                <button type="button" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors tooltip btn-suspend-user" title="Tangguhkan Akun">
+                                                    <i data-lucide="ban" class="w-4 h-4"></i>
+                                                </button>
+                                            @elseif($user->status === 'suspended')
+                                                <input type="hidden" name="status" value="active">
+                                                <button type="submit" class="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors tooltip" title="Aktifkan Akun">
+                                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                                </button>
+                                            @endif
+                                            </form>
                                         @endif
-                                    </form>
+                                    @else
+                                        <!-- Placeholder to maintain spacing -->
+                                        <div class="w-8 inline-block"></div>
+                                    @endif
 
-                                    <!-- Just placeholder for detail view -->
-                                    <a href="#" class="p-2 text-brand hover:bg-brand/10 rounded-lg transition-colors tooltip" title="Lihat Detail">
+                                    <!-- Button for detail view modal -->
+                                    <button type="button" class="p-2 text-brand hover:bg-brand/10 rounded-lg transition-colors tooltip btn-view-user" title="Lihat Detail"
+                                        data-name="{{ $user->name }}"
+                                        data-email="{{ $user->email }}"
+                                        data-phone="{{ $user->phone_number ?? '-' }}"
+                                        data-role="{{ $user->roles->first()->name ?? 'Tidak ada' }}"
+                                        data-joined="{{ $user->created_at->format('d M Y, H:i') }}"
+                                        data-status="{{ ucfirst($user->status) }}"
+                                        data-reason="{{ $user->rejection_reason ?? '-' }}"
+                                        @if($user->hasRole('buyer') && $user->buyerProfile)
+                                            data-profile-type="buyer"
+                                            data-company="{{ $user->buyerProfile->company_name ?? '-' }}"
+                                            data-industry="{{ $user->buyerProfile->industry_type ?? '-' }}"
+                                            data-address="{{ $user->buyerProfile->address ?? '-' }}"
+                                            data-city="{{ $user->buyerProfile->city ?? '-' }}"
+                                            data-province="{{ $user->buyerProfile->province ?? '-' }}"
+                                            data-zip="{{ $user->buyerProfile->postal_code ?? '-' }}"
+                                        @elseif($user->hasRole('seller') && $user->sellerProfile)
+                                            data-profile-type="seller"
+                                            data-business="{{ $user->sellerProfile->business_name ?? '-' }}"
+                                            data-btype="{{ $user->sellerProfile->business_type ?? '-' }}"
+                                            data-address="{{ $user->sellerProfile->address ?? '-' }}"
+                                            data-city="{{ $user->sellerProfile->city ?? '-' }}"
+                                            data-province="{{ $user->sellerProfile->province ?? '-' }}"
+                                            data-zip="{{ $user->sellerProfile->postal_code ?? '-' }}"
+                                        @else
+                                            data-profile-type="none"
+                                        @endif
+                                    >
                                         <i data-lucide="eye" class="w-4 h-4"></i>
-                                    </a>
+                                    </button>
+                                    @if($canDelete)
+                                        <!-- Delete Button -->
+                                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="inline-block delete-user-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors tooltip btn-delete-user" title="Hapus Permanen">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <!-- Placeholder to maintain spacing -->
+                                        <div class="w-8 inline-block"></div>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -154,4 +238,250 @@
             </div>
         @endif
     </div>
+
+<!-- User Detail Modal -->
+<div id="userDetailModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+    <!-- Backdrop -->
+    <div id="modalBackdrop" class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
+    
+    <!-- Modal Content -->
+    <div id="modalContent" class="bg-white rounded-2xl shadow-xl w-full max-w-2xl transform scale-95 opacity-0 transition-all duration-300 relative z-10 max-h-[90vh] flex flex-col">
+        <!-- Close Button -->
+        <button type="button" id="closeModalBtn" class="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        
+        <div class="p-6 border-b border-gray-100 flex items-center gap-4 shrink-0">
+            <div class="w-12 h-12 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                <i data-lucide="user" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-gray-900" id="modalUserName">Nama Pengguna</h3>
+                <p class="text-sm text-gray-500" id="modalUserEmail">email@example.com</p>
+            </div>
+            <div class="ml-auto mr-8">
+                <span id="modalUserStatus" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">Status</span>
+            </div>
+        </div>
+        
+        <div class="p-6 overflow-y-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Basic Info -->
+                <div>
+                    <h4 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">Data Akun Utama</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">No. WhatsApp</p>
+                            <p class="text-sm font-medium text-gray-900" id="modalUserPhone">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Peran (Role)</p>
+                            <p class="text-sm font-medium text-gray-900" id="modalUserRole">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Tanggal Bergabung</p>
+                            <p class="text-sm font-medium text-gray-900" id="modalUserJoined">-</p>
+                        </div>
+                        <div id="modalReasonContainer" class="hidden">
+                            <p class="text-xs text-red-500 mb-1 font-bold">Catatan / Alasan</p>
+                            <p class="text-sm font-medium text-red-700 bg-red-50 p-3 rounded-xl border border-red-100" id="modalUserReason">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Info -->
+                <div id="modalProfileSection">
+                    <!-- Dynamic content will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('userDetailModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const content = document.getElementById('modalContent');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const profileSection = document.getElementById('modalProfileSection');
+        
+        function openModal() {
+            modal.classList.remove('hidden');
+            // small delay for transition
+            setTimeout(() => {
+                backdrop.classList.remove('opacity-0');
+                backdrop.classList.add('opacity-100');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+        
+        function closeModal() {
+            backdrop.classList.remove('opacity-100');
+            backdrop.classList.add('opacity-0');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+        
+        closeBtn.addEventListener('click', closeModal);
+        backdrop.addEventListener('click', closeModal);
+        
+        document.querySelectorAll('.btn-view-user').forEach(button => {
+            button.addEventListener('click', function() {
+                // Populate data
+                document.getElementById('modalUserName').textContent = this.dataset.name;
+                document.getElementById('modalUserEmail').textContent = this.dataset.email;
+                document.getElementById('modalUserPhone').textContent = this.dataset.phone;
+                document.getElementById('modalUserRole').textContent = this.dataset.role;
+                document.getElementById('modalUserJoined').textContent = this.dataset.joined;
+                
+                const reasonText = this.dataset.reason;
+                const reasonContainer = document.getElementById('modalReasonContainer');
+                const reasonEl = document.getElementById('modalUserReason');
+                if (reasonText && reasonText !== '-') {
+                    reasonEl.textContent = reasonText;
+                    reasonContainer.classList.remove('hidden');
+                } else {
+                    reasonContainer.classList.add('hidden');
+                }
+                
+                const statusSpan = document.getElementById('modalUserStatus');
+                statusSpan.textContent = this.dataset.status;
+                statusSpan.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium';
+                if (this.dataset.status.toLowerCase() === 'active') {
+                    statusSpan.classList.add('bg-emerald-100', 'text-emerald-700');
+                } else if (this.dataset.status.toLowerCase() === 'suspended') {
+                    statusSpan.classList.add('bg-red-100', 'text-red-700');
+                } else {
+                    statusSpan.classList.add('bg-amber-100', 'text-amber-700');
+                }
+                
+                const type = this.dataset.profileType;
+                let html = '';
+                
+                if (type === 'buyer') {
+                    html = `
+                        <h4 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">Profil Pembeli</h4>
+                        <div class="space-y-4">
+                            <div><p class="text-xs text-gray-500 mb-1">Nama Perusahaan</p><p class="text-sm font-medium text-gray-900">${this.dataset.company}</p></div>
+                            <div><p class="text-xs text-gray-500 mb-1">Jenis Industri</p><p class="text-sm font-medium text-gray-900">${this.dataset.industry}</p></div>
+                            <div><p class="text-xs text-gray-500 mb-1">Alamat Lengkap</p><p class="text-sm font-medium text-gray-900">${this.dataset.address}</p></div>
+                            <div><p class="text-xs text-gray-500 mb-1">Kota / Provinsi</p><p class="text-sm font-medium text-gray-900">${this.dataset.city}, ${this.dataset.province}</p></div>
+                            <div><p class="text-xs text-gray-500 mb-1">Kode Pos</p><p class="text-sm font-medium text-gray-900">${this.dataset.zip}</p></div>
+                        </div>
+                    `;
+                } else if (type === 'seller') {
+                    html = `
+                        <h4 class="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">Profil Penjual</h4>
+                        <div class="space-y-4">
+                            <div><p class="text-xs text-gray-500 mb-1">Nama Usaha/Pengepul</p><p class="text-sm font-medium text-gray-900">${this.dataset.business}</p></div>
+                            <div><p class="text-xs text-gray-500 mb-1">Tipe Usaha</p><p class="text-sm font-medium text-gray-900">${this.dataset.btype}</p></div>
+                            <div><p class="text-xs text-gray-500 mb-1">Alamat Lengkap</p><p class="text-sm font-medium text-gray-900">${this.dataset.address}</p></div>
+                            <div><p class="text-xs text-gray-500 mb-1">Kota / Provinsi</p><p class="text-sm font-medium text-gray-900">${this.dataset.city}, ${this.dataset.province}</p></div>
+                            <div><p class="text-xs text-gray-500 mb-1">Kode Pos</p><p class="text-sm font-medium text-gray-900">${this.dataset.zip}</p></div>
+                        </div>
+                    `;
+                } else {
+                    html = `<div class="flex items-center justify-center h-full bg-gray-50 rounded-xl border border-dashed border-gray-200 p-8"><p class="text-sm text-gray-500 text-center">Tidak ada data profil spesifik.</p></div>`;
+                }
+                profileSection.innerHTML = html;
+                
+                openModal();
+            });
+        });
+
+        document.querySelectorAll('.btn-reject-user').forEach(button => {
+            button.addEventListener('click', function() {
+                const form = this.closest('form');
+                const reasonInput = form.querySelector('.rejection-reason-input');
+                
+                Swal.fire({
+                    title: 'Tolak Pendaftaran?',
+                    text: 'Apakah Anda yakin ingin menolak pendaftaran pengguna ini?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    showCloseButton: true,
+                    scrollbarPadding: false,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Tolak',
+                    cancelButtonText: 'Batal',
+                    customClass: {
+                        popup: 'rounded-2xl shadow-xl',
+                        confirmButton: 'rounded-xl',
+                        cancelButton: 'rounded-xl'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+        
+        document.querySelectorAll('.btn-suspend-user').forEach(button => {
+            button.addEventListener('click', function() {
+                const form = this.closest('form');
+                const reasonInput = form.querySelector('.suspension-reason-input');
+                
+                Swal.fire({
+                    title: 'Tangguhkan Akun?',
+                    text: 'Apakah Anda yakin ingin menangguhkan akun pengguna ini?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    showCloseButton: true,
+                    scrollbarPadding: false,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Tangguhkan',
+                    cancelButtonText: 'Batal',
+                    customClass: {
+                        popup: 'rounded-2xl shadow-xl',
+                        confirmButton: 'rounded-xl',
+                        cancelButton: 'rounded-xl'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+        
+        document.querySelectorAll('.btn-delete-user').forEach(button => {
+            button.addEventListener('click', function() {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: 'Hapus Pengguna?',
+                    text: "Apakah Anda yakin ingin menghapus permanen pengguna ini? Aksi ini tidak dapat dibatalkan.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    showCloseButton: true,
+                    scrollbarPadding: false,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                    customClass: {
+                        popup: 'rounded-2xl shadow-xl',
+                        confirmButton: 'rounded-xl',
+                        cancelButton: 'rounded-xl'
+                    },
+                    heightAuto: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush

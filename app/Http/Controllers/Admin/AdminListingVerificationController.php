@@ -23,7 +23,6 @@ class AdminListingVerificationController extends Controller implements HasMiddle
     {
         return [
             'auth',
-            'verified',
             'role:admin',
         ];
     }

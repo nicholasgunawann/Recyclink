@@ -51,13 +51,32 @@
             </div>
 
             <div class="mb-10 text-center">
-                <div class="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6 mx-auto">
-                    <i data-lucide="clock" class="w-10 h-10 text-amber-500"></i>
-                </div>
-                <h2 class="text-3xl font-bold text-gray-900">Menunggu Verifikasi</h2>
-                <p class="mt-4 text-gray-600 leading-relaxed text-lg">
-                    Tunggu beberapa saat ya, akun sedang tahap verifikasi. Silakan periksa kembali nanti!
-                </p>
+                @if($user->isActive())
+                    <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <i data-lucide="check-circle" class="w-10 h-10 text-emerald-500"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900">Verifikasi Berhasil!</h2>
+                    <p class="mt-4 text-gray-600 leading-relaxed text-lg">
+                        Selamat! Akun Anda telah berhasil diverifikasi oleh tim kami. Anda sekarang dapat mulai menggunakan layanan Recyclink.
+                    </p>
+                    <div class="mt-8">
+                        <form action="{{ route('verification.acknowledge') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center justify-center gap-2 text-sm font-bold text-white transition-colors bg-brand hover:bg-brand-hover px-6 py-3.5 rounded-xl w-full sm:w-auto shadow-sm">
+                                Masuk ke Dashboard
+                                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </button>
+                        </form>
+                    </div>
+                @else
+                    <div class="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6 mx-auto">
+                        <i data-lucide="clock" class="w-10 h-10 text-amber-500"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900">Menunggu Verifikasi</h2>
+                    <p class="mt-4 text-gray-600 leading-relaxed text-lg">
+                        Tunggu beberapa saat ya, akun sedang tahap verifikasi. Silakan periksa kembali nanti!
+                    </p>
+                @endif
             </div>
             
             <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-4">

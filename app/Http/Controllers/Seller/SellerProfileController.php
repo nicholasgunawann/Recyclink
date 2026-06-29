@@ -21,9 +21,15 @@ class SellerProfileController extends Controller implements HasMiddleware
     {
         return [
             'auth',
-            'verified',
             'role:seller',
         ];
+    }
+
+    // ponytail: profile view
+    public function index()
+    {
+        $profile = auth()->user()->sellerProfile;
+        return view('seller.profile.index', compact('profile'));
     }
 
     // ponytail: edit profile form
@@ -38,7 +44,7 @@ class SellerProfileController extends Controller implements HasMiddleware
     {
         try {
             $this->profileService->updateSellerProfile(auth()->user(), $request->validated());
-            return redirect()->back()->with('success', 'Profile updated successfully.');
+            return redirect()->route('seller.profile.index')->with('success', 'Profile updated successfully.');
         } catch (RecyclinkException $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }

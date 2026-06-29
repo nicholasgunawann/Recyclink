@@ -20,7 +20,6 @@ class AdminReportController extends Controller implements HasMiddleware
     {
         return [
             'auth',
-            'verified',
             'role:admin',
         ];
     }

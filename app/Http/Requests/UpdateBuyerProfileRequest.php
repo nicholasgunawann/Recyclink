@@ -15,13 +15,16 @@ class UpdateBuyerProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+            'email' => 'required|email|max:255|unique:users,email,' . $this->user()?->id,
+            'password' => 'nullable|string|min:8',
+            'address' => 'required|string',
             'company_name' => 'nullable|string|max:150',
-            'buyer_type' => 'nullable|string|max:100',
-            'address' => 'nullable|string',
+            'industry_type' => 'nullable|string|max:100',
             'city' => 'nullable|string|max:100',
             'province' => 'nullable|string|max:100',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
+            'postal_code' => 'nullable|string|max:20',
         ];
     }
 }

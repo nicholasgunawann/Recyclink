@@ -13,7 +13,6 @@ class BuyerFavoriteController extends Controller implements HasMiddleware
     {
         return [
             'auth',
-            'verified',
             'role:buyer',
         ];
     }

@@ -11,7 +11,6 @@ class SellerWalletController extends Controller implements HasMiddleware
     {
         return [
             'auth',
-            'verified',
             'role:seller',
         ];
     }

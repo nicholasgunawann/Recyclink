@@ -60,13 +60,21 @@ class LoginController extends Controller implements HasMiddleware
         if ($user->status === User::STATUS_INACTIVE || $user->status === User::STATUS_SUSPENDED) {
             return redirect()->route('verification.rejected');
         }
+        // If active but hasn't seen the success page yet
+        if ($user->status === User::STATUS_ACTIVE && $user->email_verified_at === null) {
+            return redirect()->route('verification.pending');
+        }
         if ($user->roles->count() === 0) {
             return redirect()->route('choose.role');
         }
-        $fallback = route('home');
+        
+        // Admin directly to dashboard
         if ($user->isAdmin()) {
-            $fallback = route('admin.dashboard');
-        } elseif ($user->isSeller()) {
+            return redirect()->route('admin.dashboard');
+        }
+        
+        $fallback = route('home');
+        if ($user->isSeller()) {
             $fallback = route('seller.dashboard');
         } elseif ($user->isBuyer()) {
             $fallback = route('buyer.dashboard');

@@ -11,7 +11,6 @@ class BuyerDashboardController extends Controller implements HasMiddleware
     {
         return [
             'auth',
-            'verified',
             'role:buyer',
         ];
     }

@@ -12,6 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -42,24 +43,34 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isBuyer(): bool  { return $this->hasRole('buyer'); }
     public function isAdmin(): bool  { return $this->hasRole('admin'); }
 
-    // ponytail: cached seller summary stats
+    // ponytail: cached seller summary — one combined query to cut remote DB round trips
     public function getCachedSellerSummary(): array
     {
         return Cache::remember("seller_dashboard_summary_{$this->id}", rand(120, 300), function () {
+            $row = DB::selectOne('
+                SELECT
+                    (SELECT COUNT(*) FROM waste_listings WHERE seller_id = ? AND deleted_at IS NULL) as listings_count,
+                    (SELECT COUNT(*) FROM orders WHERE seller_id = ? AND deleted_at IS NULL) as orders_count
+            ', [$this->id, $this->id]);
             return [
-                'listings_count' => $this->wasteListings()->count(),
-                'orders_count' => $this->sellerOrders()->count(),
+                'listings_count' => (int) $row->listings_count,
+                'orders_count'   => (int) $row->orders_count,
             ];
         });
     }
 
-    // ponytail: cached buyer summary stats
+    // ponytail: cached buyer summary — one combined query to cut remote DB round trips
     public function getCachedBuyerSummary(): array
     {
         return Cache::remember("buyer_dashboard_summary_{$this->id}", rand(120, 300), function () {
+            $row = DB::selectOne('
+                SELECT
+                    (SELECT COUNT(*) FROM orders WHERE buyer_id = ? AND deleted_at IS NULL) as orders_count,
+                    (SELECT COUNT(*) FROM favorite_listings WHERE buyer_id = ?) as favorites_count
+            ', [$this->id, $this->id]);
             return [
-                'orders_count' => $this->buyerOrders()->count(),
-                'favorites_count' => $this->favoriteListings()->count(),
+                'orders_count'    => (int) $row->orders_count,
+                'favorites_count' => (int) $row->favorites_count,
             ];
         });
     }

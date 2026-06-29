@@ -4,10 +4,29 @@
 @section('header_title', 'Dashboard')
 
 @section('content')
+
+{{-- Profile completion banner --}}
+@if(!app(\App\Services\ProfileService::class)->checkProfileCompletion(auth()->user()))
+    <div class="mb-6 flex items-start gap-4 bg-amber-50 border border-amber-200 rounded-2xl p-5">
+        <div class="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-500">
+            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+        </div>
+        <div class="flex-1">
+            <h4 class="font-bold text-amber-800">Profil Usaha Belum Lengkap</h4>
+            <p class="text-amber-700 text-sm mt-0.5">Lengkapi nama usaha, jenis usaha, nomor telepon, alamat, dan lokasi maps agar bisa mulai berjualan.</p>
+        </div>
+        <a href="{{ route('seller.profile.edit') }}"
+           class="flex-shrink-0 px-4 py-2 bg-amber-500 text-white font-bold text-sm rounded-xl hover:bg-amber-600 transition-colors whitespace-nowrap">
+            Lengkapi Sekarang →
+        </a>
+    </div>
+@endif
+
     <div class="mb-8">
         <h3 class="text-2xl font-bold text-gray-900">Halo, {{ auth()->user()->name }} 👋</h3>
-        <p class="text-gray-600 mt-1">Selamat datang kembali! Berikut ringkasan aktivitas toko dan penjualan Anda.</p>
+        <p class="text-gray-600 mt-1">Selamat datang! Berikut ringkasan aktivitas toko dan penjualan Anda.</p>
     </div>
+
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">

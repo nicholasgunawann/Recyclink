@@ -9,6 +9,9 @@
     {{-- Vite: CSS & JS (includes Tailwind CSS v4) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    {{-- Hotwired Turbo for faster page transitions (SPA-like) --}}
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-umd.js"></script>
+
     {{-- Lucide Icons --}}
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
@@ -30,6 +33,12 @@
     @stack('scripts')
 
     {{-- Activate Lucide Icons --}}
-    <script>lucide.createIcons();</script>
+    <script>
+        document.addEventListener("turbo:load", function() {
+            lucide.createIcons();
+        });
+        // Initial load
+        lucide.createIcons();
+    </script>
 </body>
 </html>

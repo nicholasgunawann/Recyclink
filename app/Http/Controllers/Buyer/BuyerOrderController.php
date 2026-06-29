@@ -24,7 +24,6 @@ class BuyerOrderController extends Controller implements HasMiddleware
     {
         return [
             'auth',
-            'verified',
             'role:buyer',
         ];
     }
