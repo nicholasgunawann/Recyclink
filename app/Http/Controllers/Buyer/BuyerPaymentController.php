@@ -90,8 +90,10 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                     'Content-Type' => 'application/json'
                 ])->post($apiUrl, $payload);
 
-                if ($response->successful() && isset($response['payment_link'])) {
-                    return redirect($response['payment_link']);
+                $redirectLink = $response['payment_url'] ?? $response['payment_link'] ?? null;
+
+                if ($response->successful() && $redirectLink) {
+                    return redirect($redirectLink);
                 }
 
                 // Log response if failed for debugging
@@ -100,7 +102,7 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                     'status' => $response->status()
                 ]);
 
-                // Jika gagal mendapatkan payment_link
+                // Jika gagal mendapatkan payment_url
                 return redirect()->back()->with('error', 'Gagal membuat tagihan pembayaran. Mohon coba lagi.');
             } catch (\Exception $e) {
                 return redirect()->back()->with('error', 'Sistem pembayaran sedang gangguan: ' . $e->getMessage());
