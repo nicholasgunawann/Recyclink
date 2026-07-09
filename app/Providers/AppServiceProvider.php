@@ -13,6 +13,7 @@ use App\Policies\ComplaintPolicy;
 use App\Models\EducationContent;
 use App\Policies\EducationContentPolicy;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +30,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
+
         Gate::policy(WasteListing::class, WasteListingPolicy::class);
         Gate::policy(Order::class, OrderPolicy::class);
         Gate::policy(Complaint::class, ComplaintPolicy::class);
