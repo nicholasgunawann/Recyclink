@@ -15,19 +15,9 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="mb-6 p-4 bg-brand/10 border border-brand/20 text-brand rounded-xl font-medium flex items-center gap-3">
-            <i data-lucide="check-circle" class="w-5 h-5 text-brand"></i>
-            {{ session('success') }}
-        </div>
-    @endif
+    
 
-    @if(session('error'))
-        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl font-medium flex items-center gap-3">
-            <i data-lucide="alert-circle" class="w-5 h-5 text-red-500"></i>
-            {{ session('error') }}
-        </div>
-    @endif
+    
 
     <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden mb-6">
         <div class="p-6 md:p-8 space-y-8">
@@ -176,7 +166,7 @@
                         <i data-lucide="check" class="w-4 h-4"></i> Setujui & Tayangkan
                     </button>
                 @else
-                    <form action="{{ route('admin.listings.verification.deactivate', $listing) }}" method="POST" onsubmit="return confirm('Nonaktifkan listing ini?');">
+                    <form action="{{ route('admin.listings.verification.deactivate', $listing) }}" method="POST" data-confirm="Nonaktifkan listing ini?">
                         @csrf
                         @method('PATCH')
                         <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-gray-200 text-gray-700 hover:bg-gray-300 font-bold rounded-xl transition-colors">

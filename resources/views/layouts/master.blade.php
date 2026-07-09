@@ -83,5 +83,6 @@
             }, 5000);
         };
     </script>
+    @include('layouts.sweetalert')
 </body>
 </html>

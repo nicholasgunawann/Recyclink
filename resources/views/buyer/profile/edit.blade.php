@@ -17,16 +17,8 @@
         <p class="text-gray-500">Pastikan informasi profil Anda terbaru untuk memudahkan proses verifikasi dan pengiriman sistem industri kami.</p>
     </div>
 
-    @if(session('success'))
-        <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl">
-            {{ session('success') }}
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl">
-            {{ session('error') }}
-        </div>
-    @endif
+    
+    
 
     @php
         $user = auth()->user();

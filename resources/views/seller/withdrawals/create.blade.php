@@ -14,12 +14,7 @@
     </div>
 
     {{-- Error Alerts --}}
-    @if(session('error'))
-        <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3">
-            <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
-            <span class="font-medium">{{ session('error') }}</span>
-        </div>
-    @endif
+    
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
         

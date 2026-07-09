@@ -36,12 +36,7 @@
             <span class="text-2xl font-bold text-brand tracking-tight">Recyclink</span>
         </div>
 
-        @if(session('success'))
-            <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl flex items-center justify-center gap-3 max-w-lg mx-auto">
-                <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
-                <span class="font-medium">{{ session('success') }}</span>
-            </div>
-        @endif
+        
 
         <h1 class="text-4xl font-extrabold text-gray-900 mb-4">Selamat Akun Anda Telah Diverifikasi!</h1>
         <p class="text-lg text-gray-600 max-w-xl mx-auto">

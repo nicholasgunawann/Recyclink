@@ -19,12 +19,7 @@
     </div>
 </div>
 
-@if(session('success'))
-    <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl flex items-center gap-3">
-        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
-        <span class="font-medium">{{ session('success') }}</span>
-    </div>
-@endif
+
 
 <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
     @if($withdrawals->isEmpty())

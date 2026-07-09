@@ -16,11 +16,7 @@
         </a>
     </div>
 
-    @if(session('success'))
-        <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl">
-            {{ session('success') }}
-        </div>
-    @endif
+    
 
     @php
         $user = auth()->user();
