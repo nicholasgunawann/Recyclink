@@ -23,12 +23,7 @@
             </div>
         </div>
 
-        @if(session('error'))
-            <div class="m-6 mb-0 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center gap-2 text-sm font-medium">
-                <i data-lucide="alert-circle" class="w-5 h-5 shrink-0"></i>
-                {{ session('error') }}
-            </div>
-        @endif
+        
 
         <form action="{{ route('buyer.orders.payment.store', $order->id) }}" method="POST" class="p-6">
             @csrf

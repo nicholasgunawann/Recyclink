@@ -11,19 +11,9 @@
     </div>
 </div>
 
-@if(session('success'))
-    <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl font-medium flex items-center gap-3">
-        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-500"></i>
-        {{ session('success') }}
-    </div>
-@endif
 
-@if(session('error'))
-    <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl font-medium flex items-center gap-3">
-        <i data-lucide="alert-circle" class="w-5 h-5 text-red-500"></i>
-        {{ session('error') }}
-    </div>
-@endif
+
+
 
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
     <div class="overflow-x-auto">

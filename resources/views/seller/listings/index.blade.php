@@ -88,7 +88,7 @@
                         <a href="{{ route('seller.listings.edit', $listing) }}" class="flex-1 py-2 text-center bg-gray-50 text-gray-700 font-semibold text-sm rounded-xl hover:bg-gray-100 transition-colors">
                             Edit
                         </a>
-                        <form action="{{ route('seller.listings.destroy', $listing) }}" method="POST" class="flex-none" onsubmit="return confirm('Apakah Anda yakin ingin menghapus listing ini?');">
+                        <form action="{{ route('seller.listings.destroy', $listing) }}" method="POST" class="flex-none" data-confirm="Apakah Anda yakin ingin menghapus listing ini?">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors" title="Hapus">

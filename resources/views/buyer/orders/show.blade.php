@@ -5,18 +5,8 @@
 @section('content')
 <div class="p-6 lg:p-8">
 
-    @if(session('success'))
-    <div class="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-2xl">
-        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500 shrink-0"></i>
-        <span class="text-sm font-medium">{{ session('success') }}</span>
-    </div>
-    @endif
-    @if(session('error'))
-    <div class="mb-6 flex items-center gap-3 bg-rose-50 border border-rose-200 text-rose-800 px-5 py-4 rounded-2xl">
-        <i data-lucide="x-circle" class="w-5 h-5 text-rose-500 shrink-0"></i>
-        <span class="text-sm font-medium">{{ session('error') }}</span>
-    </div>
-    @endif
+    
+    
 
     @php
         $statusStyles = [
@@ -120,19 +110,19 @@
                 @endif
 
                 @if(in_array($order->order_status, ['paid', 'processing']))
-                <form method="POST" action="{{ route('buyer.orders.complete', $order->id) }}" class="flex-1 flex">
+                <form method="POST" action="{{ route('buyer.orders.complete', $order->id) }}" class="flex-1 flex" data-confirm="Konfirmasi bahwa Anda telah menerima pesanan dengan baik?">
                     @csrf @method('PATCH')
-                    <button type="submit" onclick="return confirm('Konfirmasi bahwa Anda telah menerima pesanan dengan baik?')" class="w-full px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-colors flex justify-center items-center gap-2">
+                    <button type="submit" class="w-full px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-colors flex justify-center items-center gap-2">
                         <i data-lucide="check-circle-2" class="w-4 h-4"></i> Pesanan Diterima
                     </button>
                 </form>
                 @endif
 
                 @if(in_array($order->order_status, ['pending', 'waiting_payment', 'accepted']))
-                <form method="POST" action="{{ route('buyer.orders.cancel', $order->id) }}" class="flex-none">
+                <form method="POST" action="{{ route('buyer.orders.cancel', $order->id) }}" class="flex-none" data-confirm="Batalkan pesanan ini?">
                     @csrf @method('PATCH')
                     <input type="hidden" name="reason" value="Dibatalkan oleh pembeli">
-                    <button type="submit" onclick="return confirm('Batalkan pesanan ini?')" class="w-full px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-sm rounded-xl border border-rose-200 transition-colors">
+                    <button type="submit" class="w-full px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-sm rounded-xl border border-rose-200 transition-colors">
                         Batalkan Pesanan
                     </button>
                 </form>

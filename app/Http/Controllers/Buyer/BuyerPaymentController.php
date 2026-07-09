@@ -63,30 +63,44 @@ class BuyerPaymentController extends Controller implements HasMiddleware
         if ($dompetxMode === 'live') {
             try {
                 $apiKey = env('DOMPETX_API_KEY');
-                $apiUrl = env('DOMPETX_API_URL', 'https://api.dompetx.com/v1/payment');
-                $merchantId = env('DOMPETX_MERCHANT_ID', '1111111111-1111-1111-1111-1111111111');
+                // Use checkout endpoint
+                $apiUrl = env('DOMPETX_API_URL', 'https://api.dompetx.com/v1/payments/checkout');
 
                 $payload = [
-                    'merchantId' => $merchantId,
                     'amount' => (int) $order->total_amount,
                     'currency' => 'IDR',
-                    'settlementSpeed' => 'standard',
                     'reference' => $order->order_code,
+                    'redirectUrl' => route('buyer.orders.index'),
                     'metadata' => [
-                        'customer_id' => 'CUST-' . auth()->id(),
-                        'order_type' => 'retail'
-                    ],
-                    'method' => strtoupper($method), // Akan mengirim BCA, BNI, BRI, BSI, atau QRIS
-                    'chargeFeeToCustomer' => true
+                        'order_name' => 'Pesanan ' . $order->order_code,
+                        'customer_name' => auth()->user()->name,
+                        'customer_email' => auth()->user()->email,
+                    ]
                 ];
 
-                $response = \Illuminate\Support\Facades\Http::withToken($apiKey)->post($apiUrl, $payload);
+                $body = json_encode($payload);
+                $timestamp = (string) time();
+                $ks = $timestamp . '.' . $body;
+                $signature = hash_hmac('sha256', $ks, $apiKey);
 
-                if ($response->successful() && isset($response['payment_url'])) {
-                    return redirect($response['payment_url']);
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'X-DOMPAY-API-Key' => $apiKey,
+                    'X-DOMPAY-Signature' => $signature,
+                    'X-DOMPAY-Timestamp' => $timestamp,
+                    'Content-Type' => 'application/json'
+                ])->post($apiUrl, $payload);
+
+                if ($response->successful() && isset($response['payment_link'])) {
+                    return redirect($response['payment_link']);
                 }
 
-                // Jika gagal mendapatkan payment_url
+                // Log response if failed for debugging
+                \Illuminate\Support\Facades\Log::error('DompetX Checkout Failed', [
+                    'response' => $response->json(),
+                    'status' => $response->status()
+                ]);
+
+                // Jika gagal mendapatkan payment_link
                 return redirect()->back()->with('error', 'Gagal membuat tagihan pembayaran. Mohon coba lagi.');
             } catch (\Exception $e) {
                 return redirect()->back()->with('error', 'Sistem pembayaran sedang gangguan: ' . $e->getMessage());

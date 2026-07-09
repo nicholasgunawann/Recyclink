@@ -9,18 +9,8 @@
     <p class="text-gray-600 mt-1">Kelola dan mediasi keluhan atau sengketa transaksi antar pengguna.</p>
 </div>
 
-@if(session('success'))
-    <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl flex items-center gap-3">
-        <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
-        <span class="font-medium">{{ session('success') }}</span>
-    </div>
-@endif
-@if(session('error'))
-    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3">
-        <i data-lucide="alert-circle" class="w-5 h-5 text-red-600"></i>
-        <span class="font-medium">{{ session('error') }}</span>
-    </div>
-@endif
+
+
 
 <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
     @if($complaints->isEmpty())

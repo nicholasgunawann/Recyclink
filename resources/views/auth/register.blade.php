@@ -62,12 +62,7 @@
                 <p class="mt-2 text-gray-600">Lengkapi data di bawah ini untuk mendaftar.</p>
             </div>
 
-            @if(session('error'))
-                <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3">
-                    <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 shrink-0 mt-0.5"></i>
-                    <p class="text-sm text-red-700">{{ session('error') }}</p>
-                </div>
-            @endif
+            
 
             <form action="{{ route('register') }}" method="POST" class="space-y-6">
                 @csrf

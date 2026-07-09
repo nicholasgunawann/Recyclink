@@ -62,19 +62,9 @@
                 <p class="mt-2 text-gray-600">Silakan masukkan email dan kata sandi Anda.</p>
             </div>
 
-            @if(session('error'))
-                <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3">
-                    <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 shrink-0 mt-0.5"></i>
-                    <p class="text-sm text-red-700">{{ session('error') }}</p>
-                </div>
-            @endif
+            
 
-            @if(session('success'))
-                <div class="mb-6 p-4 rounded-xl bg-green-50 border border-brand/20 flex items-start gap-3">
-                    <i data-lucide="check-circle-2" class="w-5 h-5 text-brand shrink-0 mt-0.5"></i>
-                    <p class="text-sm text-brand-dark">{{ session('success') }}</p>
-                </div>
-            @endif
+            
 
             <form action="{{ route('login') }}" method="POST" class="space-y-6">
                 @csrf

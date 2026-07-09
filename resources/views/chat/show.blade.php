@@ -96,14 +96,7 @@
         </div>
 
         {{-- Flash error --}}
-        @if(session('error'))
-        <div class="px-5 py-2">
-            <div class="flex items-center gap-2 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-2.5 rounded-xl text-sm">
-                <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
-                {{ session('error') }}
-            </div>
-        </div>
-        @endif
+        
 
         {{-- Input Form --}}
         <form method="POST" action="{{ route('conversations.messages.store', $conversation->id) }}" class="p-4 bg-white border-t border-gray-100 flex items-center gap-3 shrink-0">

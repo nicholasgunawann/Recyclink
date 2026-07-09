@@ -5,35 +5,7 @@
             {{-- Left: Contact Form --}}
             <div class="bg-white rounded-3xl border border-gray-200 p-8 sm:p-10 shadow-sm">
                 <h2 class="text-3xl font-extrabold text-gray-900 mb-8 tracking-tight">Hubungi Kami</h2>
-                @if(session('success'))
-                    <div id="toast-success" class="fixed top-24 right-5 flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-xl shadow-lg border border-gray-100 animate-[slideIn_0.3s_ease-out] z-50 transition-all duration-300" role="alert">
-                        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg">
-                            <i data-lucide="check-circle" class="w-5 h-5"></i>
-                        </div>
-                        <div class="ml-3 text-sm font-medium text-gray-800">{{ session('success') }}</div>
-                        <button type="button" class="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 transition-colors" onclick="document.getElementById('toast-success').remove()" aria-label="Close">
-                            <span class="sr-only">Close</span>
-                            <i data-lucide="x" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                    
-                    <script>
-                        setTimeout(() => {
-                            const toast = document.getElementById('toast-success');
-                            if (toast) {
-                                toast.style.opacity = '0';
-                                setTimeout(() => toast.remove(), 300);
-                            }
-                        }, 5000);
-                    </script>
-                    
-                    <style>
-                        @keyframes slideIn {
-                            from { transform: translateX(100%); opacity: 0; }
-                            to { transform: translateX(0); opacity: 1; }
-                        }
-                    </style>
-                @endif
+                
                 
                 <form action="{{ route('kontak.submit') }}" method="POST" class="space-y-6">
                     @csrf

@@ -174,5 +174,6 @@
     </script>
     @stack('scripts')
     @include('layouts.global-loader')
+    @include('layouts.sweetalert')
 </body>
 </html>

@@ -16,31 +16,9 @@
     <!-- Global Toast Notifications -->
     @if(session('success') || session('error'))
         <div id="global-toast" class="fixed top-24 right-6 z-[60] flex flex-col gap-3 min-w-[320px] max-w-sm" style="animation: fade-in-down 0.4s ease-out;">
-            @if(session('success'))
-                <div class="bg-white border-l-4 border-emerald-500 p-4 rounded-xl shadow-xl flex items-start gap-3 relative pr-10">
-                    <i data-lucide="check-circle" class="w-5 h-5 text-emerald-500 mt-0.5 shrink-0"></i>
-                    <div class="flex-1">
-                        <h4 class="text-sm font-bold text-gray-900">Berhasil</h4>
-                        <p class="text-sm text-gray-600 mt-0.5 leading-snug">{{ session('success') }}</p>
-                    </div>
-                    <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors absolute top-2 right-2">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            @endif
+            
 
-            @if(session('error'))
-                <div class="bg-white border-l-4 border-red-500 p-4 rounded-xl shadow-xl flex items-start gap-3 relative pr-10">
-                    <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 mt-0.5 shrink-0"></i>
-                    <div class="flex-1">
-                        <h4 class="text-sm font-bold text-gray-900">Perhatian</h4>
-                        <p class="text-sm text-gray-600 mt-0.5 leading-snug">{{ session('error') }}</p>
-                    </div>
-                    <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors absolute top-2 right-2">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            @endif
+            
         </div>
         
         <script>
@@ -225,5 +203,6 @@
     </script>
     @stack('scripts')
     @include('layouts.global-loader')
+    @include('layouts.sweetalert')
 </body>
 </html>

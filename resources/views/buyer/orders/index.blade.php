@@ -5,18 +5,8 @@
 @section('content')
 <div class="p-6 lg:p-8">
 
-    @if(session('success'))
-    <div class="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-4 rounded-2xl">
-        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500 shrink-0"></i>
-        <span class="text-sm font-medium">{{ session('success') }}</span>
-    </div>
-    @endif
-    @if(session('error'))
-    <div class="mb-6 flex items-center gap-3 bg-rose-50 border border-rose-200 text-rose-800 px-5 py-4 rounded-2xl">
-        <i data-lucide="x-circle" class="w-5 h-5 text-rose-500 shrink-0"></i>
-        <span class="text-sm font-medium">{{ session('error') }}</span>
-    </div>
-    @endif
+    
+    
 
     <div class="mb-6">
         <h2 class="text-xl font-bold text-gray-900">Riwayat Pesanan</h2>
