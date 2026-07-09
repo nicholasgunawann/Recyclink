@@ -30,30 +30,56 @@
             <h3 class="font-bold text-gray-900 mb-4 text-lg">Metode Pembayaran (Payment Gateway)</h3>
 
             <div class="space-y-4">
-                {{-- Virtual Account --}}
+                {{-- Virtual Account BCA --}}
                 <label class="relative flex items-center p-4 border border-brand bg-brand/5 rounded-2xl cursor-pointer hover:border-brand hover:bg-brand/5 transition-all method-label">
-                    <input type="radio" name="method_radio" value="virtual_account" class="hidden" checked onchange="selectMethod(this)">
+                    <input type="radio" name="method_radio" value="bca" class="hidden" checked onchange="selectMethod(this)">
                     <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm mr-4 shrink-0">
                         <i data-lucide="building-2" class="w-5 h-5 text-brand"></i>
                     </div>
                     <div class="flex-1">
-                        <h4 class="font-bold text-gray-900 text-sm">Virtual Account (Bank Transfer)</h4>
-                        <p class="text-xs text-gray-500 mt-0.5">BCA, Mandiri, BNI, BRI, Permata</p>
+                        <h4 class="font-bold text-gray-900 text-sm">Virtual Account BCA</h4>
+                        <p class="text-xs text-gray-500 mt-0.5">Otomatis dicek (Bayar via m-BCA / ATM BCA)</p>
                     </div>
                     <div class="w-5 h-5 rounded-full border-2 border-brand bg-brand flex items-center justify-center radio-indicator">
                         <div class="w-2 h-2 rounded-full bg-white"></div>
                     </div>
                 </label>
 
-                {{-- E-Wallet --}}
+                {{-- Virtual Account BNI --}}
                 <label class="relative flex items-center p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand hover:bg-brand/5 transition-all method-label">
-                    <input type="radio" name="method_radio" value="ewallet" class="hidden" onchange="selectMethod(this)">
+                    <input type="radio" name="method_radio" value="bni" class="hidden" onchange="selectMethod(this)">
                     <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm mr-4 shrink-0">
-                        <i data-lucide="wallet" class="w-5 h-5 text-brand"></i>
+                        <i data-lucide="building-2" class="w-5 h-5 text-brand"></i>
                     </div>
                     <div class="flex-1">
-                        <h4 class="font-bold text-gray-900 text-sm">E-Wallet</h4>
-                        <p class="text-xs text-gray-500 mt-0.5">OVO, GoPay, DANA, ShopeePay</p>
+                        <h4 class="font-bold text-gray-900 text-sm">Virtual Account BNI</h4>
+                        <p class="text-xs text-gray-500 mt-0.5">Otomatis dicek (Bayar via BNI Mobile / ATM BNI)</p>
+                    </div>
+                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center radio-indicator"></div>
+                </label>
+
+                {{-- Virtual Account BRI --}}
+                <label class="relative flex items-center p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand hover:bg-brand/5 transition-all method-label">
+                    <input type="radio" name="method_radio" value="bri" class="hidden" onchange="selectMethod(this)">
+                    <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm mr-4 shrink-0">
+                        <i data-lucide="building-2" class="w-5 h-5 text-brand"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-gray-900 text-sm">Virtual Account BRI</h4>
+                        <p class="text-xs text-gray-500 mt-0.5">Otomatis dicek (Bayar via BRImo / ATM BRI)</p>
+                    </div>
+                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center radio-indicator"></div>
+                </label>
+
+                {{-- Virtual Account BSI --}}
+                <label class="relative flex items-center p-4 border border-gray-200 rounded-2xl cursor-pointer hover:border-brand hover:bg-brand/5 transition-all method-label">
+                    <input type="radio" name="method_radio" value="bsi" class="hidden" onchange="selectMethod(this)">
+                    <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm mr-4 shrink-0">
+                        <i data-lucide="building-2" class="w-5 h-5 text-brand"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-gray-900 text-sm">Virtual Account BSI</h4>
+                        <p class="text-xs text-gray-500 mt-0.5">Otomatis dicek (Bayar via BSI Mobile / ATM BSI)</p>
                     </div>
                     <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center radio-indicator"></div>
                 </label>
@@ -66,7 +92,7 @@
                     </div>
                     <div class="flex-1">
                         <h4 class="font-bold text-gray-900 text-sm">QRIS</h4>
-                        <p class="text-xs text-gray-500 mt-0.5">Scan kode QRIS menggunakan m-banking</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Scan kode QRIS menggunakan m-banking atau E-Wallet</p>
                     </div>
                     <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center radio-indicator"></div>
                 </label>

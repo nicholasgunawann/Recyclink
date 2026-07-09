@@ -66,7 +66,6 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                 $apiUrl = env('DOMPETX_API_URL', 'https://api.dompetx.com/v1/payment');
                 $merchantId = env('DOMPETX_MERCHANT_ID', '1111111111-1111-1111-1111-1111111111');
 
-                // Payload sesuai dengan format dari DompetX Payload Tester
                 $payload = [
                     'merchantId' => $merchantId,
                     'amount' => (int) $order->total_amount,
@@ -77,24 +76,25 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                         'customer_id' => 'CUST-' . auth()->id(),
                         'order_type' => 'retail'
                     ],
-                    'method' => strtoupper($method),
+                    'method' => strtoupper($method), // Akan mengirim BCA, BNI, BRI, BSI, atau QRIS
                     'chargeFeeToCustomer' => true
                 ];
 
-                // Kirim request ke API DompetX
                 $response = \Illuminate\Support\Facades\Http::withToken($apiKey)->post($apiUrl, $payload);
 
                 if ($response->successful() && isset($response['payment_url'])) {
-                    // Jika DompetX mengembalikan URL pembayaran, lempar user ke sana
                     return redirect($response['payment_url']);
                 }
+
+                // Jika gagal mendapatkan payment_url
+                return redirect()->back()->with('error', 'Gagal membuat tagihan pembayaran. Mohon coba lagi.');
             } catch (\Exception $e) {
-                // Jika API gagal, kita bisa memilih untuk membiarkannya jatuh (fallback) ke halaman simulasi
+                return redirect()->back()->with('error', 'Sistem pembayaran sedang gangguan: ' . $e->getMessage());
             }
         }
 
-        // Fallback / Sandbox Mode: Lempar ke halaman simulasi DompetX buatan kita
-        return redirect()->route('buyer.dompetx.checkout', ['order' => $order->id, 'method' => $method]);
+        // Jika mode masih sandbox di env, tetap berikan error agar admin tahu harus mengubah ke live
+        return redirect()->back()->with('error', 'Mode pembayaran belum disetting ke live. Silakan hubungi admin.');
     }
 
     // ponytail: show payment proof details
