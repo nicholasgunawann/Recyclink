@@ -11,6 +11,19 @@
         </a>
     </div>
 
+    {{-- Flash Messages --}}
+    @if(session('error'))
+        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+            <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 mt-0.5 shrink-0"></i>
+            <p class="text-sm font-semibold text-red-700">{{ session('error') }}</p>
+        </div>
+    @endif
+    @if(session('success'))
+        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-start gap-3">
+            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mt-0.5 shrink-0"></i>
+            <p class="text-sm font-semibold text-green-700">{{ session('success') }}</p>
+        </div>
+    @endif
     <div class="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden mb-6">
         <div class="px-6 py-5 bg-brand/5 border-b border-gray-100 flex items-center justify-between">
             <div>

@@ -63,8 +63,12 @@ class BuyerPaymentController extends Controller implements HasMiddleware
         if ($dompetxMode === 'live') {
             try {
                 $apiKey = env('DOMPETX_API_KEY');
+                if (empty($apiKey)) {
+                    return redirect()->back()->with('error', 'Konfigurasi API Key DompetX belum diatur. Hubungi admin.');
+                }
+
                 // Endpoint checkout (hosted payment page) sesuai dokumentasi DompetX
-                $apiUrl = 'https://api.dompetx.com/v1/payments/checkout';
+                $apiUrl = env('DOMPETX_API_URL', 'https://api.dompetx.com/v1/payments/checkout');
 
                 // Payload checkout hanya membutuhkan amount, currency, dan reference
                 $payload = [
@@ -81,13 +85,15 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                 // Idempotency-Key wajib ada untuk mencegah duplikat transaksi
                 $idempotencyKey = 'checkout-' . $order->order_code . '-' . $timestamp;
 
-                $response = \Illuminate\Support\Facades\Http::withHeaders([
-                    'X-DOMPAY-API-Key' => $apiKey,
-                    'X-DOMPAY-Signature' => $signature,
-                    'X-DOMPAY-Timestamp' => $timestamp,
-                    'Idempotency-Key' => $idempotencyKey,
-                    'Content-Type' => 'application/json',
-                ])->post($apiUrl, $payload);
+                $response = \Illuminate\Support\Facades\Http::timeout(15)
+                    ->connectTimeout(10)
+                    ->withHeaders([
+                        'X-DOMPAY-API-Key' => $apiKey,
+                        'X-DOMPAY-Signature' => $signature,
+                        'X-DOMPAY-Timestamp' => $timestamp,
+                        'Idempotency-Key' => $idempotencyKey,
+                        'Content-Type' => 'application/json',
+                    ])->post($apiUrl, $payload);
 
                 $responseData = $response->json();
 
@@ -96,9 +102,9 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                     ?? $responseData['payment_url']
                     ?? $responseData['checkoutUrl']
                     ?? $responseData['checkout_url']
-                    ?? $responseData['data']['paymentUrl']
-                    ?? $responseData['data']['checkout_url']
-                    ?? null;
+                    ?? $responseData['data']['paymentUrl'] ?? null
+                    ?? $responseData['data']['payment_url'] ?? null
+                    ?? $responseData['data']['checkout_url'] ?? null;
 
                 if ($response->successful() && $redirectLink) {
                     return redirect($redirectLink);
@@ -113,8 +119,17 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                     'idempotency_key' => $idempotencyKey,
                 ]);
 
-                $errorMsg = $responseData['message'] ?? $responseData['error'] ?? 'Gagal membuat tagihan pembayaran. Mohon coba lagi.';
+                // Tampilkan error detail ke user agar bisa di-diagnosa
+                $apiError = $responseData['message'] ?? $responseData['error'] ?? json_encode($responseData);
+                $errorMsg = "Pembayaran gagal (HTTP {$response->status()}): {$apiError}";
                 return redirect()->back()->with('error', $errorMsg);
+
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                \Illuminate\Support\Facades\Log::error('DompetX Connection Error', [
+                    'message' => $e->getMessage(),
+                ]);
+                return redirect()->back()->with('error', 'Tidak dapat terhubung ke server pembayaran. Coba lagi nanti.');
+
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('DompetX Checkout Exception', [
                     'message' => $e->getMessage(),

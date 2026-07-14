@@ -6,7 +6,7 @@
     <title>Payment Checkout | DompetX</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
     <style>
         body { background-color: #f3f4f6; }
         .dompetx-brand { color: #1e3a8a; } /* Blue brand for payment gateway */

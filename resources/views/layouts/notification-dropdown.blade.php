@@ -1,7 +1,12 @@
 @php
-    // ponytail: calculate notifications and prefix dynamically based on active user
-    $unreadCount = auth()->user()->notifications()->where('is_read', false)->count();
-    $recentNotifications = auth()->user()->notifications()->latest()->take(5)->get();
+    // ponytail: cache notifications briefly to avoid 2 DB queries on every page load
+    $userId = auth()->id();
+    $unreadCount = \Illuminate\Support\Facades\Cache::remember("notif_unread_{$userId}", 60, function () {
+        return auth()->user()->notifications()->where('is_read', false)->count();
+    });
+    $recentNotifications = \Illuminate\Support\Facades\Cache::remember("notif_recent_{$userId}", 60, function () {
+        return auth()->user()->notifications()->latest()->take(5)->get();
+    });
     
     $rolePrefix = null;
     if (auth()->user()->isSeller()) {

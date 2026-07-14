@@ -14,7 +14,7 @@ class NotificationService
     // ponytail: send a general notification to a user
     public function sendToUser(User $user, string $title, string $message, string $type, $referenceId = null): Notification
     {
-        return Notification::create([
+        $notification = Notification::create([
             'user_id' => $user->id,
             'title' => $title,
             'message' => $message,
@@ -22,6 +22,12 @@ class NotificationService
             'reference_id' => $referenceId,
             'is_read' => false,
         ]);
+
+        // Invalidate notification cache so dropdown shows the new notification
+        \Illuminate\Support\Facades\Cache::forget("notif_unread_{$user->id}");
+        \Illuminate\Support\Facades\Cache::forget("notif_recent_{$user->id}");
+
+        return $notification;
     }
 
     // ponytail: notify seller when a new order is created
@@ -153,7 +159,7 @@ class NotificationService
             $this->sendToUser(
                 $seller,
                 "Permintaan Penarikan Dana Diterima",
-                "Permintaan penarikan dana #{$withdrawal->withdrawal_number} sebesar Rp " . number_format($withdrawal->amount, 0, ',', '.') . " sedang menunggu persetujuan.",
+                "Permintaan penarikan dana #{$withdrawal->withdrawal_number} sebesar Rp " . number_format((float) $withdrawal->amount, 0, ',', '.') . " sedang menunggu persetujuan.",
                 "withdrawal",
                 $withdrawal->id
             );

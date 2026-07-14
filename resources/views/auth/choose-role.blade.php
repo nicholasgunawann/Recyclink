@@ -6,7 +6,7 @@
     <meta name="turbo-prefetch" content="true">
     <title>Pilih Peran - Recyclink</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
     <style>
         .role-card { border: 2px solid #e5e7eb; transition: all 0.2s ease; }
         .role-card.active {

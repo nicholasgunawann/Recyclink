@@ -7,6 +7,9 @@
     <meta name="turbo-prefetch" content="true">
     <title>@yield('title', 'Recyclink')</title>
 
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
     {{-- Vite: CSS & JS (includes Tailwind CSS v4) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -14,7 +17,7 @@
     <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-umd.js"></script>
 
     {{-- Lucide Icons --}}
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
 
     @stack('styles')
 </head>
