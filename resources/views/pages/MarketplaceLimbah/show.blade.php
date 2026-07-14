@@ -49,11 +49,48 @@
         
         <!-- Product Images -->
         <div class="w-full lg:w-5/12 p-6 lg:p-8 border-b lg:border-b-0 lg:border-r border-gray-100">
-          <div class="aspect-w-1 aspect-h-1 w-full rounded-xl overflow-hidden bg-gray-100 relative">
+          <div class="aspect-w-1 aspect-h-1 w-full rounded-xl overflow-hidden bg-gray-100 relative mb-4">
             <img src="{{ $listing->primaryImage ? (str_starts_with($listing->primaryImage->image_url, 'http') ? $listing->primaryImage->image_url : asset('storage/'.$listing->primaryImage->image_url)) : '' }}" alt="{{ $listing->title }}"
-                 class="w-full h-full object-cover object-center" id="mainImage">
+                 class="w-full h-full object-cover object-center transition-opacity duration-300" id="mainImage">
             <span class="absolute top-4 left-4 bg-brand text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm">{{ $listing->category->category_name ?? 'Limbah' }}</span>
           </div>
+
+          @if($listing->images && $listing->images->count() > 1)
+          <div class="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+            @foreach($listing->images as $image)
+              @php
+                $imgSrc = str_starts_with($image->image_url, 'http') ? $image->image_url : asset('storage/'.$image->image_url);
+              @endphp
+              <button type="button" class="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 border-2 transition-all gallery-thumbnail {{ $loop->first ? 'border-brand opacity-100' : 'border-transparent opacity-60 hover:opacity-100' }}" onclick="changeMainImage('{{ $imgSrc }}', this)">
+                <img src="{{ $imgSrc }}" class="w-full h-full object-cover object-center">
+              </button>
+            @endforeach
+          </div>
+          <script>
+            function changeMainImage(src, btn) {
+                const mainImg = document.getElementById('mainImage');
+                if(mainImg.src === src) return;
+                
+                mainImg.style.opacity = 0;
+                setTimeout(() => {
+                    mainImg.src = src;
+                    mainImg.style.opacity = 1;
+                }, 150);
+                
+                document.querySelectorAll('.gallery-thumbnail').forEach(el => {
+                    el.classList.remove('border-brand', 'opacity-100');
+                    el.classList.add('border-transparent', 'opacity-60');
+                });
+                
+                btn.classList.remove('border-transparent', 'opacity-60');
+                btn.classList.add('border-brand', 'opacity-100');
+            }
+          </script>
+          <style>
+              .hide-scrollbar::-webkit-scrollbar { display: none; }
+              .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+          </style>
+          @endif
         </div>
 
         <!-- Product Details -->
