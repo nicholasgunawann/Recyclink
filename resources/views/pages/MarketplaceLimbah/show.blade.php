@@ -61,8 +61,8 @@
               @php
                 $imgSrc = str_starts_with($image->image_url, 'http') ? $image->image_url : asset('storage/'.$image->image_url);
               @endphp
-              <button type="button" class="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 border-2 transition-all gallery-thumbnail {{ $loop->first ? 'border-brand opacity-100' : 'border-transparent opacity-60 hover:opacity-100' }}" onclick="changeMainImage('{{ $imgSrc }}', this)">
-                <img src="{{ $imgSrc }}" class="w-full h-full object-cover object-center">
+              <button type="button" class="relative w-20 h-20 p-0 rounded-xl overflow-hidden bg-gray-100 shrink-0 border-2 transition-all gallery-thumbnail {{ $loop->first ? 'border-brand opacity-100' : 'border-transparent opacity-60 hover:opacity-100' }}" onclick="changeMainImage('{{ $imgSrc }}', this)">
+                <img src="{{ $imgSrc }}" class="absolute inset-0 w-full h-full object-cover object-center">
               </button>
             @endforeach
           </div>
@@ -453,6 +453,36 @@ input[type="number"]::-webkit-outer-spin-button {
     } else {
         showContent();
     }
+
+    // 5. Loading states for action buttons (cart & favorite)
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                const isCart = btn.innerText.toLowerCase().includes('keranjang');
+                const isFav = btn.title.includes('Favorit');
+                const isChat = btn.innerText.toLowerCase().includes('chat');
+                const isOrder = btn.innerText.toLowerCase().includes('konfirmasi');
+                
+                if (btn.disabled) {
+                    e.preventDefault();
+                    return;
+                }
+                
+                btn.disabled = true;
+                btn.classList.add('opacity-75', 'cursor-wait');
+                
+                const spinner = `<svg class="animate-spin shrink-0 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+
+                if (isCart || isChat || isOrder) {
+                    const icon = btn.querySelector('svg') || btn.querySelector('i');
+                    if (icon) icon.outerHTML = spinner;
+                } else if (isFav) {
+                    btn.innerHTML = spinner;
+                }
+            }
+        });
+    });
 })();
 </script>
 @endpush
