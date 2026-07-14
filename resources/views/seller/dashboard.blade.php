@@ -23,8 +23,8 @@
 @endif
 
     <div class="mb-8">
-        <h3 class="text-2xl font-bold text-gray-900">Halo, {{ auth()->user()->name }} 👋</h3>
-        <p class="text-gray-600 mt-1">Selamat datang! Berikut ringkasan aktivitas toko dan penjualan Anda.</p>
+        <h3 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-brand to-emerald-600 tracking-tight">Halo, {{ auth()->user()->name }}</h3>
+        <p class="text-gray-600 mt-2 text-lg">Selamat datang! Berikut ringkasan aktivitas toko dan penjualan Anda.</p>
     </div>
 
 
@@ -100,24 +100,6 @@
                         <i data-lucide="plus-circle" class="w-6 h-6"></i>
                     </div>
                     <span class="font-bold text-gray-900">Tambah Limbah</span>
-                </a>
-                <a href="#" class="group p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-brand hover:bg-brand/5 transition-all text-center flex flex-col items-center">
-                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform text-amber-500">
-                        <i data-lucide="user" class="w-6 h-6"></i>
-                    </div>
-                    <span class="font-bold text-gray-900">Lengkapi Profil</span>
-                </a>
-                <a href="#" class="group p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-brand hover:bg-brand/5 transition-all text-center flex flex-col items-center">
-                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform text-purple-500">
-                        <i data-lucide="banknote" class="w-6 h-6"></i>
-                    </div>
-                    <span class="font-bold text-gray-900">Tarik Saldo</span>
-                </a>
-                <a href="#" class="group p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-brand hover:bg-brand/5 transition-all text-center flex flex-col items-center">
-                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform text-emerald-500">
-                        <i data-lucide="message-square" class="w-6 h-6"></i>
-                    </div>
-                    <span class="font-bold text-gray-900">Pesan Masuk</span>
                 </a>
             </div>
         </div>

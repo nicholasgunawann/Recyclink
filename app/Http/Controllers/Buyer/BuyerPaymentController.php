@@ -63,49 +63,63 @@ class BuyerPaymentController extends Controller implements HasMiddleware
         if ($dompetxMode === 'live') {
             try {
                 $apiKey = env('DOMPETX_API_KEY');
-                // Mengabaikan env yang typo (kurang huruf 's') dan memaksakan URL yang benar
-                $apiUrl = 'https://api.dompetx.com/v1/payments';
+                // Endpoint checkout (hosted payment page) sesuai dokumentasi DompetX
+                $apiUrl = 'https://api.dompetx.com/v1/payments/checkout';
 
+                // Payload checkout hanya membutuhkan amount, currency, dan reference
                 $payload = [
                     'amount' => (int) $order->total_amount,
                     'currency' => 'IDR',
                     'reference' => $order->order_code,
-                    'method' => strtoupper($method),
-                    'metadata' => [
-                        'order_name' => 'Pesanan ' . $order->order_code,
-                        'customer_name' => auth()->user()->name,
-                        'customer_email' => auth()->user()->email,
-                    ]
                 ];
 
                 $body = json_encode($payload);
                 $timestamp = (string) time();
-                $ks = $timestamp . '.' . $body;
-                $signature = hash_hmac('sha256', $ks, $apiKey);
+                $signatureData = $timestamp . '.' . $body;
+                $signature = hash_hmac('sha256', $signatureData, $apiKey);
+
+                // Idempotency-Key wajib ada untuk mencegah duplikat transaksi
+                $idempotencyKey = 'checkout-' . $order->order_code . '-' . $timestamp;
 
                 $response = \Illuminate\Support\Facades\Http::withHeaders([
                     'X-DOMPAY-API-Key' => $apiKey,
                     'X-DOMPAY-Signature' => $signature,
                     'X-DOMPAY-Timestamp' => $timestamp,
-                    'Content-Type' => 'application/json'
+                    'Idempotency-Key' => $idempotencyKey,
+                    'Content-Type' => 'application/json',
                 ])->post($apiUrl, $payload);
 
-                // API mengembalikan paymentUrl dalam format camelCase untuk /v1/payments
-                $redirectLink = $response['paymentUrl'] ?? $response['payment_url'] ?? $response['payment_link'] ?? null;
+                $responseData = $response->json();
+
+                // Cari URL redirect dari response
+                $redirectLink = $responseData['paymentUrl']
+                    ?? $responseData['payment_url']
+                    ?? $responseData['checkoutUrl']
+                    ?? $responseData['checkout_url']
+                    ?? $responseData['data']['paymentUrl']
+                    ?? $responseData['data']['checkout_url']
+                    ?? null;
 
                 if ($response->successful() && $redirectLink) {
                     return redirect($redirectLink);
                 }
 
-                // Log response if failed for debugging
-                \Illuminate\Support\Facades\Log::error('DompetX Payment Failed', [
-                    'response' => $response->json(),
-                    'status' => $response->status()
+                // Log detail lengkap untuk debugging
+                \Illuminate\Support\Facades\Log::error('DompetX Checkout Failed', [
+                    'http_status' => $response->status(),
+                    'response_body' => $responseData,
+                    'request_url' => $apiUrl,
+                    'request_payload' => $payload,
+                    'idempotency_key' => $idempotencyKey,
                 ]);
 
-                // Jika gagal mendapatkan link
-                return redirect()->back()->with('error', 'Gagal membuat tagihan pembayaran. Mohon coba lagi.');
+                $errorMsg = $responseData['message'] ?? $responseData['error'] ?? 'Gagal membuat tagihan pembayaran. Mohon coba lagi.';
+                return redirect()->back()->with('error', $errorMsg);
             } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('DompetX Checkout Exception', [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
                 return redirect()->back()->with('error', 'Sistem pembayaran sedang gangguan: ' . $e->getMessage());
             }
         }

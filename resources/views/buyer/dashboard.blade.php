@@ -23,8 +23,8 @@
 @endif
 
 <div class="mb-8">
-    <h3 class="text-2xl font-bold text-gray-900">Halo, {{ auth()->user()->name }} 👋</h3>
-    <p class="text-gray-600 mt-1">Selamat datang! Berikut ringkasan aktivitas belanja limbah Anda.</p>
+    <h3 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-brand to-emerald-600 tracking-tight">Halo, {{ auth()->user()->name }}</h3>
+    <p class="text-gray-600 mt-2 text-lg">Selamat datang! Berikut ringkasan aktivitas belanja limbah Anda.</p>
 </div>
 
 <!-- Stats Grid -->
