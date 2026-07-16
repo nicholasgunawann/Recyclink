@@ -6,7 +6,7 @@
 <a href="{{ route('conversations.show', $conv->id) }}" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group">
     <div class="w-12 h-12 rounded-xl {{ auth()->user()->isBuyer() ? 'bg-brand/10 text-brand' : 'bg-gray-100 text-gray-500' }} overflow-hidden shrink-0 flex items-center justify-center">
         @if($partner)
-            <img src="https://ui-avatars.com/api/?name={{ urlencode($partner->name ?? 'U') }}&background=14b8a6&color=fff" class="w-full h-full object-cover" alt="{{ $partner->name }}">
+            <img src="https://ui-avatars.com/api/?name={{ urlencode($partner->name ?? 'U') }}&background=7A9C59&color=fff" class="w-full h-full object-cover" alt="{{ $partner->name }}">
         @else
             <i data-lucide="user" class="w-6 h-6"></i>
         @endif

@@ -217,7 +217,7 @@ class OrderService
                 }
             }
 
-            // Credit seller wallet using WalletService
+            // Credit seller wallet using WalletService (Only when order is COMPLETED)
             $this->walletService->addEarnings(
                 $order->seller,
                 (float) ($order->subtotal + $order->shipping_cost),

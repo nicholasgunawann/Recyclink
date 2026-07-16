@@ -10,8 +10,8 @@
     <style>
         .role-card { border: 2px solid #e5e7eb; transition: all 0.2s ease; }
         .role-card.active {
-            border-color: #16a34a;
-            box-shadow: 0 0 0 4px rgba(22,163,74,0.15);
+            border-color: #7A9C59;
+            box-shadow: 0 0 0 4px rgba(122,156,89,0.15);
         }
         .role-card .check-badge {
             opacity: 0;
@@ -24,7 +24,7 @@
         }
         .role-card .pilih-label { opacity: 0; transition: opacity 0.2s ease; }
         .role-card:hover .pilih-label { opacity: 1; }
-        .role-card.active .pilih-label { opacity: 1; color: #16a34a; }
+        .role-card.active .pilih-label { opacity: 1; color: #7A9C59; }
     </style>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-umd.js"></script>
 </head>
@@ -54,7 +54,7 @@
             <div class="role-card relative bg-white rounded-3xl p-8 shadow-md cursor-pointer"
                  id="card-seller"
                  onclick="selectRole('seller')">
-                <div class="check-badge absolute top-5 right-5 w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center shadow-lg">
+                <div class="check-badge absolute top-5 right-5 w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <div class="flex flex-col items-center text-center">
@@ -76,7 +76,7 @@
             <div class="role-card relative bg-white rounded-3xl p-8 shadow-md cursor-pointer"
                  id="card-buyer"
                  onclick="selectRole('buyer')">
-                <div class="check-badge absolute top-5 right-5 w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center shadow-lg">
+                <div class="check-badge absolute top-5 right-5 w-8 h-8 rounded-full bg-brand text-white flex items-center justify-center shadow-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <div class="flex flex-col items-center text-center">
@@ -122,7 +122,7 @@
             const label = role === 'seller' ? 'Penjual Limbah' : 'Pembeli Limbah';
             const hint = document.getElementById('hintText');
             hint.textContent = '✓ ' + label + ' dipilih';
-            hint.className = 'text-green-600 text-sm font-medium mt-3';
+            hint.className = 'text-brand text-sm font-medium mt-3';
         }
 
         document.addEventListener("turbo:load", function() {

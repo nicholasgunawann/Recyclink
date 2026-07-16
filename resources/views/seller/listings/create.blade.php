@@ -92,7 +92,7 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <span class="text-gray-500 text-sm font-medium">Rp</span>
                             </div>
-                            <input type="number" name="price_per_unit" value="{{ old('price_per_unit') }}" placeholder="4000" class="w-full pl-10 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-brand focus:border-brand block p-3" required>
+                            <input type="number" name="price_per_unit" value="{{ old('price_per_unit') }}" min="1000" placeholder="4000" class="w-full pl-10 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-brand focus:border-brand block p-3" required>
                         </div>
                         @error('price_per_unit') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>

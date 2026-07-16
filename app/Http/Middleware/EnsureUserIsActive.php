@@ -26,7 +26,7 @@ class EnsureUserIsActive
                 }
                 return $next($request);
             }
-            auth()->logout();
+            \Illuminate\Support\Facades\Auth::logout();
             return redirect()->route('login')->with('error', 'Akun Anda tidak aktif atau ditangguhkan.');
         }
 

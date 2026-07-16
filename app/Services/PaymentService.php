@@ -13,10 +13,12 @@ use Illuminate\Support\Facades\DB;
 class PaymentService
 {
     protected NotificationService $notificationService;
+    protected WalletService $walletService;
 
-    public function __construct(NotificationService $notificationService)
+    public function __construct(NotificationService $notificationService, WalletService $walletService)
     {
         $this->notificationService = $notificationService;
+        $this->walletService = $walletService;
     }
 
     // ponytail: create manual payment for order (only if status is waiting_payment)

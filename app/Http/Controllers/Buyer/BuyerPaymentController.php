@@ -45,6 +45,40 @@ class BuyerPaymentController extends Controller implements HasMiddleware
 
         $method = $request->input('payment_method', 'cash_on_delivery');
 
+        // Dynamic fee rules
+        $methods = [
+            'bca' => ['fee' => 4300, 'min' => 10000],
+            'bni' => ['fee' => 3000, 'min' => 15000],
+            'bri' => ['fee' => 3000, 'min' => 15000],
+            'bsi' => ['fee' => 3900, 'min' => 10000],
+            'qris' => ['fee' => 0, 'min' => 0],
+            'cash_on_delivery' => ['fee' => 0, 'min' => 0],
+        ];
+
+        if (isset($methods[$method])) {
+            $rule = $methods[$method];
+            if ($order->total_amount < $rule['min']) {
+                return redirect()->back()->with('error', 'Total transaksi belum memenuhi minimum untuk metode pembayaran ini.');
+            }
+
+            // Update order with dynamic fee if not already applied
+            // To prevent double adding if user submits multiple times, we check if payment is already pending/created.
+            // But since payment is created later, we can just apply it.
+            // Wait, what if they fail to checkout and come back? We need to ensure we don't add fee twice.
+            // A safer way is to recalculate from subtotal + shipping_cost + base 5% platform fee.
+            $basePlatformFee = $order->subtotal * 0.05;
+            $newPlatformFee = $basePlatformFee + $rule['fee'];
+            $newTotalAmount = $order->subtotal + $order->shipping_cost + $newPlatformFee;
+
+            if ($order->total_amount !== $newTotalAmount) {
+                $order->update([
+                    'platform_fee' => $newPlatformFee,
+                    'total_amount' => $newTotalAmount,
+                ]);
+                $order->refresh();
+            }
+        }
+
         // Jika metode adalah COD, kita biarkan logic aslinya berjalan (atau ubah status menjadi processing)
         if ($method === 'cash_on_delivery') {
             try {
@@ -81,6 +115,8 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                     'currency' => 'IDR',
                     'reference' => $referenceCode,
                     'method' => strtoupper($method),
+                    'callback_url' => route('webhook.dompetx'),
+                    'return_url' => route('buyer.orders.show', $order->id),
                     'metadata' => [
                         'order_id' => $order->id,
                         'buyer_name' => auth()->user()->name,
@@ -122,7 +158,7 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                         'payment_gateway' => 'dompetx',
                         'payment_reference' => $responseData['id'] ?? $referenceCode,
                         'amount' => $order->total_amount,
-                        'payment_status' => \App\Models\Payment::STATUS_PENDING,
+                        'payment_status' => Payment::STATUS_PENDING,
                         'payment_number' => 'PAY-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
                         'gateway_transaction_id' => $responseData['id'] ?? null,
                         'gateway_response' => json_encode($responseData),
@@ -136,7 +172,7 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                         $paymentData['virtual_account_number'] = null;
                     }
 
-                    \App\Models\Payment::updateOrCreate(
+                    Payment::updateOrCreate(
                         ['order_id' => $order->id],
                         $paymentData
                     );

@@ -20,7 +20,7 @@ class StoreWasteListingRequest extends FormRequest
             'description' => 'nullable|string',
             'quantity' => 'required|numeric|min:0.01',
             'unit' => 'required|string|in:kg,liter,pcs,karung',
-            'price_per_unit' => 'required|numeric|min:0',
+            'price_per_unit' => 'required|numeric|min:1000',
             'address' => 'required|string',
             'city' => 'required|string|max:100',
             'province' => 'nullable|string|max:100',

@@ -112,7 +112,7 @@
                 @if(in_array($order->order_status, ['paid', 'processing']))
                 <form method="POST" action="{{ route('buyer.orders.complete', $order->id) }}" class="flex-1 flex" data-confirm="Konfirmasi bahwa Anda telah menerima pesanan dengan baik?">
                     @csrf @method('PATCH')
-                    <button type="submit" class="w-full px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-colors flex justify-center items-center gap-2">
+                    <button type="submit" class="w-full px-5 py-2.5 bg-brand hover:bg-brand-hover text-white font-bold text-sm rounded-xl transition-colors flex justify-center items-center gap-2">
                         <i data-lucide="check-circle-2" class="w-4 h-4"></i> Pesanan Diterima
                     </button>
                 </form>
@@ -201,7 +201,7 @@
                     <h3 class="font-bold text-gray-900">Informasi Penjual</h3>
                 </div>
                 <div class="px-5 py-4 flex items-center gap-3">
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode($order->seller->name) }}&background=14b8a6&color=fff" class="w-10 h-10 rounded-xl shrink-0">
+                    <img src="https://ui-avatars.com/api/?name={{ urlencode($order->seller->name) }}&background=7A9C59&color=fff" class="w-10 h-10 rounded-xl shrink-0">
                     <div>
                         <p class="text-sm font-bold text-gray-900">{{ $order->seller->sellerProfile->business_name ?? $order->seller->name }}</p>
                         <p class="text-xs text-gray-500">{{ $order->seller->sellerProfile->city ?? '' }}</p>
