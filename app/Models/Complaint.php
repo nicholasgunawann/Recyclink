@@ -28,15 +28,16 @@ class Complaint extends Model
     public const STATUS_UNDER_REVIEW = 'under_review';
     public const STATUS_RESOLVED = 'resolved';
     public const STATUS_REJECTED = 'rejected';
+    public const STATUS_APPEALED = 'appealed'; // Seller appealed the resolution
 
     protected $fillable = [
         'order_id', 'complainant_id', 'admin_id', 'complaint_type',
         'description', 'evidence_url', 'status', 'resolution_note',
-        // ponytail: keep — respondent + tracking fields needed for dispute flow
         'respondent_id', 'complaint_number', 'subject', 'resolved_at',
+        'appeal_reason', 'appeal_evidence_url', 'appealed_at',
     ];
 
-    protected function casts(): array { return ['resolved_at' => 'datetime']; }
+    protected function casts(): array { return ['resolved_at' => 'datetime', 'appealed_at' => 'datetime']; }
 
     public function isOpen(): bool     { return $this->status === self::STATUS_OPEN; }
     public function isResolved(): bool { return in_array($this->status, [self::STATUS_RESOLVED, 'closed']); }

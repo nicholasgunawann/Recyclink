@@ -75,11 +75,11 @@ class LoginController extends Controller implements HasMiddleware
         
         $fallback = route('home');
         if ($user->isSeller()) {
-            $fallback = route('seller.dashboard');
+            return redirect()->route('seller.dashboard');
         } elseif ($user->isBuyer()) {
-            $fallback = route('buyer.dashboard');
+            return redirect()->route('buyer.dashboard');
         }
         
-        return redirect()->intended($fallback);
+        return redirect($fallback);
     }
 }

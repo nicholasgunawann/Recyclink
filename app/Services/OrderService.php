@@ -217,13 +217,16 @@ class OrderService
                 }
             }
 
-            // Credit seller wallet using WalletService (Only when order is COMPLETED)
-            $this->walletService->addEarnings(
-                $order->seller,
-                (float) ($order->subtotal + $order->shipping_cost),
-                $order,
-                "Earning from order {$order->order_code}."
-            );
+            // Credit seller wallet using WalletService (Only when order is COMPLETED and NOT COD)
+            $paymentMethod = $order->payment ? $order->payment->payment_method : null;
+            if ($paymentMethod !== 'cash_on_delivery') {
+                $this->walletService->addEarnings(
+                    $order->seller,
+                    (float) ($order->subtotal + $order->shipping_cost),
+                    $order,
+                    "Earning from order {$order->order_code}."
+                );
+            }
 
             $this->activityLogService->log('order.complete', 'orders', $order->id, "Order completed.");
             $this->notificationService->notifyOrderStatusChanged($order);

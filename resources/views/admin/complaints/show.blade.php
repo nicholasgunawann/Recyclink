@@ -138,13 +138,73 @@
             @endif
 
             {{-- Final Resolution Summary --}}
-            @if($complaint->status === 'resolved' || $complaint->status === 'rejected')
-                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
-                    <h4 class="font-bold text-gray-900 text-base">Keputusan Akhir / Catatan Penyelesaian</h4>
-                    <div class="p-4 rounded-xl text-sm leading-relaxed {{ $complaint->status === 'resolved' ? 'bg-emerald-50 text-emerald-800 border border-emerald-100' : 'bg-rose-50 text-rose-800 border border-rose-100' }}">
-                        <p class="font-bold mb-1.5">{{ $complaint->status === 'resolved' ? 'Diselesaikan oleh Administrator:' : 'Ditolak oleh Administrator:' }}</p>
-                        <p class="italic font-medium">"{{ $complaint->resolution_note ?? 'Tidak ada catatan penyelesaian.' }}"</p>
-                        <p class="text-xs text-gray-400 mt-3 flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> Selesai pada: {{ $complaint->resolved_at ? $complaint->resolved_at->format('d M Y, H:i') : $complaint->updated_at->format('d M Y, H:i') }}</p>
+            @endif
+
+            {{-- Appeal Section --}}
+            @if($complaint->status === \App\Models\Complaint::STATUS_APPEALED)
+                <div class="bg-white border border-blue-200 rounded-2xl p-6 shadow-sm space-y-4">
+                    <h4 class="font-bold text-blue-900 text-base flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5 text-blue-600"></i> Pengajuan Banding Penjual</h4>
+                    <div class="p-4 bg-blue-50 rounded-xl border border-blue-100 space-y-4">
+                        <div>
+                            <p class="text-xs text-blue-500 font-semibold uppercase tracking-wider mb-1">Tanggal Banding</p>
+                            <p class="text-sm font-semibold text-blue-900">{{ $complaint->appealed_at ? $complaint->appealed_at->format('d M Y, H:i') : '-' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-blue-500 font-semibold uppercase tracking-wider mb-1">Alasan Banding</p>
+                            <p class="text-sm text-blue-900 bg-white p-3 rounded-xl border border-blue-100">{{ $complaint->appeal_reason }}</p>
+                        </div>
+                        @if($complaint->appeal_evidence_url)
+                        <div>
+                            <p class="text-xs text-blue-500 font-semibold uppercase tracking-wider mb-2">Bukti Banding</p>
+                            @if(Str::endsWith($complaint->appeal_evidence_url, '.mp4'))
+                                <video src="{{ asset('storage/' . $complaint->appeal_evidence_url) }}" class="w-full h-48 object-cover rounded-xl border border-blue-200" controls></video>
+                            @else
+                                <img src="{{ asset('storage/' . $complaint->appeal_evidence_url) }}" class="w-full h-48 object-cover rounded-xl border border-blue-200">
+                            @endif
+                        </div>
+                        @endif
+
+                        {{-- Admin Actions for Appeal --}}
+                        <div class="pt-4 border-t border-blue-200 flex gap-3">
+                            <button type="button" onclick="showAppealForm('accept')" class="flex-1 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2 text-sm">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i> Terima Banding (Penjual Menang)
+                            </button>
+                            <button type="button" onclick="showAppealForm('reject')" class="flex-1 py-2.5 bg-white border border-gray-300 text-rose-600 font-bold rounded-xl hover:bg-rose-50 transition-all flex items-center justify-center gap-2 text-sm">
+                                <i data-lucide="x-circle" class="w-4 h-4"></i> Tolak Banding
+                            </button>
+                        </div>
+
+                        {{-- Accept Appeal Form --}}
+                        <div id="appeal-accept-form" class="hidden p-4 bg-white border border-blue-200 rounded-xl mt-4">
+                            <form action="{{ route('admin.complaints.appeal.accept', $complaint->id) }}" method="POST" class="space-y-3">
+                                @csrf
+                                @method('PATCH')
+                                <div>
+                                    <label class="block text-xs font-bold text-blue-900 mb-1">Catatan Penerimaan Banding</label>
+                                    <textarea name="appeal_resolution_note" rows="2" required class="w-full border border-blue-200 rounded-xl px-3 py-2 text-sm focus:ring-blue-500" placeholder="Jelaskan alasan menerima banding..."></textarea>
+                                </div>
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" onclick="hideAppealForms()" class="px-3 py-1.5 text-gray-500 text-xs font-semibold">Batal</button>
+                                    <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700">Kirim Keputusan</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        {{-- Reject Appeal Form --}}
+                        <div id="appeal-reject-form" class="hidden p-4 bg-white border border-rose-200 rounded-xl mt-4">
+                            <form action="{{ route('admin.complaints.appeal.reject', $complaint->id) }}" method="POST" class="space-y-3">
+                                @csrf
+                                @method('PATCH')
+                                <div>
+                                    <label class="block text-xs font-bold text-rose-900 mb-1">Alasan Penolakan Banding</label>
+                                    <textarea name="appeal_resolution_note" rows="2" required class="w-full border border-rose-200 rounded-xl px-3 py-2 text-sm focus:ring-rose-500" placeholder="Jelaskan alasan menolak banding..."></textarea>
+                                </div>
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" onclick="hideAppealForms()" class="px-3 py-1.5 text-gray-500 text-xs font-semibold">Batal</button>
+                                    <button type="submit" class="px-4 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-700">Tolak Banding</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             @endif
@@ -225,6 +285,26 @@
     function hideResolutionForms() {
         document.getElementById('resolve-form-container').classList.add('hidden');
         document.getElementById('reject-form-container').classList.add('hidden');
+    }
+
+    function showAppealForm(type) {
+        hideAppealForms();
+        if(type === 'accept') {
+            document.getElementById('appeal-accept-form').classList.remove('hidden');
+        } else {
+            document.getElementById('appeal-reject-form').classList.remove('hidden');
+        }
+    }
+
+    function hideAppealForms() {
+        document.getElementById('appeal-accept-form')?.classList.add('hidden');
+        document.getElementById('appeal-reject-form')?.classList.add('hidden');
+    }
+
+    // Scroll chat to bottom
+    const chatContainer = document.getElementById('chat-container');
+    if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 </script>
 @endsection

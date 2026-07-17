@@ -9,12 +9,14 @@
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Pusat Resolusi: Ajukan Komplain</h2>
         
         <div class="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-xl flex items-start gap-3">
-            <i data-lucide="alert-circle" class="w-5 h-5 text-orange-600 mt-0.5"></i>
+            <i data-lucide="alert-circle" class="w-5 h-5 text-orange-600 mt-0.5 shrink-0"></i>
             <div>
-                <h4 class="font-bold text-orange-800 text-sm">Informasi Penting</h4>
-                <p class="text-xs text-orange-700 mt-1">
-                    Ajukan pengembalian barang atau dana sebelum masa garansi selesai. Pastikan Anda melampirkan bukti yang kuat (foto/video unboxing yang jelas). Penjual dan pembeli akan berdiskusi di dalam sistem resolusi ini.
-                </p>
+                <h4 class="font-bold text-orange-800 text-sm mb-1">Informasi & Syarat Pengajuan Komplain</h4>
+                <ul class="text-xs text-orange-700 space-y-1.5 list-disc ml-4">
+                    <li><strong>Batas Waktu:</strong> Komplain harus diajukan sebelum batas waktu penerimaan otomatis selesai (maks 2 hari sejak pesanan dibayar) atau sebelum tombol "Pesanan Diterima" Anda klik.</li>
+                    <li><strong>Status Selesai:</strong> Jika pesanan sudah berstatus "Selesai", tombol komplain otomatis hilang dan dana akan diteruskan. Anda harus menghubungi penjual secara pribadi untuk ganti rugi.</li>
+                    <li><strong>Bukti Wajib:</strong> Lampirkan Video Unboxing (tanpa jeda/edit saat membuka paket) dan foto kerusakan atau ketidaksesuaian produk.</li>
+                </ul>
             </div>
         </div>
 

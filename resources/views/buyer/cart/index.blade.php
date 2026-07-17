@@ -162,16 +162,11 @@
                     {{-- Metode --}}
                     <div class="mb-4 text-left">
                         <label class="block text-sm font-semibold text-gray-700 mb-1.5">Metode Pengambilan</label>
-                        <select name="pickup_method" id="cart-pickup-method" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand bg-white text-gray-700" onchange="toggleCartAddressField(this.value)">
-                            <option value="self_pickup">Ambil Sendiri (Pickup)</option>
-                            <option value="delivery">Kirim ke Lokasi Buyer</option>
-                        </select>
-                    </div>
-                    
-                    {{-- Alamat (Hidden by default) --}}
-                    <div id="cart-address-container" class="hidden mb-4 text-left">
-                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Alamat Pengiriman</label>
-                        <textarea name="pickup_address" rows="2" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none" placeholder="Masukkan alamat lengkap Anda..."></textarea>
+                        <input type="hidden" name="pickup_method" value="self_pickup">
+                        <div class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 text-gray-600 font-medium flex items-center justify-between">
+                            Ambil Sendiri (Pickup)
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+                        </div>
                     </div>
                     
                     {{-- Jadwal --}}
@@ -205,15 +200,6 @@
 
 @push('scripts')
 <script>
-window.toggleCartAddressField = function(val) {
-    const el = document.getElementById('cart-address-container');
-    if(val === 'delivery') {
-        el.classList.remove('hidden');
-    } else {
-        el.classList.add('hidden');
-    }
-};
-
 document.addEventListener('DOMContentLoaded', function() {
     const selectAllCheckboxes = document.querySelectorAll('.select-all');
     const storeCheckboxes = document.querySelectorAll('.store-checkbox');
