@@ -138,6 +138,15 @@
             @endif
 
             {{-- Final Resolution Summary --}}
+            @if($complaint->status === 'resolved' || $complaint->status === 'rejected')
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4 mb-6">
+                    <h4 class="font-bold text-gray-900 text-base">Keputusan Akhir / Catatan Penyelesaian</h4>
+                    <div class="p-4 rounded-xl text-sm leading-relaxed {{ $complaint->status === 'resolved' ? 'bg-emerald-50 text-emerald-800 border border-emerald-100' : 'bg-rose-50 text-rose-800 border border-rose-100' }}">
+                        <p class="font-bold mb-1.5">{{ $complaint->status === 'resolved' ? 'Diselesaikan oleh Administrator:' : 'Ditolak oleh Administrator:' }}</p>
+                        <p class="italic font-medium">"{{ $complaint->resolution_note ?? 'Tidak ada catatan penyelesaian.' }}"</p>
+                        <p class="text-xs text-gray-400 mt-3 flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i> Selesai pada: {{ $complaint->resolved_at ? $complaint->resolved_at->format('d M Y, H:i') : $complaint->updated_at->format('d M Y, H:i') }}</p>
+                    </div>
+                </div>
             @endif
 
             {{-- Appeal Section --}}
