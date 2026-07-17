@@ -45,19 +45,22 @@ class BuyerPaymentController extends Controller implements HasMiddleware
 
         $method = $request->input('payment_method', 'cash_on_delivery');
 
+        $basePlatformFee = $order->subtotal * 0.05;
+        $baseTotal = $order->subtotal + $order->shipping_cost + $basePlatformFee;
+
         // Dynamic fee rules
         $methods = [
             'bca' => ['fee' => 4300, 'min' => 10000],
             'bni' => ['fee' => 3000, 'min' => 15000],
             'bri' => ['fee' => 3000, 'min' => 15000],
             'bsi' => ['fee' => 3900, 'min' => 10000],
-            'qris' => ['fee' => 0, 'min' => 0],
+            'qris' => ['fee' => ceil($baseTotal * 0.007) + 500, 'min' => 1000],
             'cash_on_delivery' => ['fee' => 0, 'min' => 0],
         ];
 
         if (isset($methods[$method])) {
             $rule = $methods[$method];
-            if ($order->total_amount < $rule['min']) {
+            if ($baseTotal < $rule['min']) {
                 return redirect()->back()->with('error', 'Total transaksi belum memenuhi minimum untuk metode pembayaran ini.');
             }
 
