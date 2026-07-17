@@ -214,6 +214,12 @@ Route::group([
 
         // Reports
         Route::get('/reports', [SellerReportController::class, 'index'])->name('reports.index');
+
+        // Seller Complaints
+        Route::get('/complaints', [App\Http\Controllers\Seller\SellerComplaintController::class, 'index'])->name('complaints.index');
+        Route::get('/complaints/{complaint}', [App\Http\Controllers\Seller\SellerComplaintController::class, 'show'])->name('complaints.show');
+        Route::post('/complaints/{complaint}/messages', [App\Http\Controllers\Seller\SellerComplaintController::class, 'storeMessage'])->name('complaints.messages.store');
+        Route::post('/complaints/{complaint}/appeal', [App\Http\Controllers\Seller\SellerComplaintController::class, 'storeAppeal'])->name('complaints.appeal.store');
     });
 });
 
@@ -313,6 +319,8 @@ Route::group([
     Route::patch('/complaints/{complaint}/process', [AdminComplaintController::class, 'process'])->name('complaints.process');
     Route::patch('/complaints/{complaint}/resolve', [AdminComplaintController::class, 'resolve'])->name('complaints.resolve');
     Route::patch('/complaints/{complaint}/reject', [AdminComplaintController::class, 'reject'])->name('complaints.reject');
+    Route::patch('/complaints/{complaint}/appeal/accept', [AdminComplaintController::class, 'acceptAppeal'])->name('complaints.appeal.accept');
+    Route::patch('/complaints/{complaint}/appeal/reject', [AdminComplaintController::class, 'rejectAppeal'])->name('complaints.appeal.reject');
 
     // Education Management
     Route::resource('education-contents', AdminEducationContentController::class);

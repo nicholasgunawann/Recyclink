@@ -118,7 +118,7 @@
                 </div>
 
                 <!-- Chat Input Form -->
-                @if(!$complaint->isResolved())
+                @if(!$complaint->isResolved() && $complaint->status !== \App\Models\Complaint::STATUS_APPEALED)
                 <div class="p-4 bg-white border-t border-gray-100 rounded-b-2xl">
                     <form action="{{ route('seller.complaints.messages.store', $complaint->id) }}" method="POST" enctype="multipart/form-data" class="flex gap-3 items-end">
                         @csrf
@@ -137,6 +137,49 @@
                 </div>
                 @endif
             </div>
+
+            <!-- Formulir Banding (Hanya jika admin resolve, buyer win, < 7 hari) -->
+            @if($complaint->status === \App\Models\Complaint::STATUS_RESOLVED && $complaint->resolved_at && $complaint->resolved_at->diffInDays(now()) <= 7)
+            <div class="mt-6 bg-white rounded-2xl shadow-sm border border-blue-200 p-6">
+                <h3 class="font-bold text-blue-900 mb-2 flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5 text-blue-600"></i> Ajukan Banding</h3>
+                <p class="text-xs text-blue-700 mb-4">Keputusan admin tidak sesuai? Anda memiliki waktu hingga <strong>{{ $complaint->resolved_at->addDays(7)->format('d M Y') }}</strong> untuk mengajukan banding. Lampirkan bukti kuat seperti video pengemasan.</p>
+                <form action="{{ route('seller.complaints.appeal.store', $complaint->id) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Alasan Banding</label>
+                        <textarea name="appeal_reason" rows="3" class="w-full border-gray-200 rounded-xl focus:ring-brand focus:border-brand px-4 py-3 text-sm bg-gray-50" required placeholder="Jelaskan mengapa Anda keberatan dengan keputusan ini..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Bukti Video/Foto (Wajib)</label>
+                        <input type="file" name="appeal_evidence" accept="video/mp4,image/jpeg,image/png" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-gray-200 rounded-xl p-2">
+                        <p class="text-[10px] text-gray-500 mt-1">Maks 20MB. Format: MP4, JPG, PNG.</p>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow flex items-center gap-2" onclick="return confirm('Apakah Anda yakin ingin mengajukan banding? Bukti yang dikirim tidak dapat diubah.')">
+                            Kirim Banding
+                        </button>
+                    </div>
+                </form>
+            </div>
+            @elseif($complaint->status === \App\Models\Complaint::STATUS_APPEALED)
+            <div class="mt-6 bg-blue-50 rounded-2xl shadow-sm border border-blue-200 p-6">
+                <h3 class="font-bold text-blue-900 mb-2 flex items-center gap-2"><i data-lucide="clock" class="w-5 h-5 text-blue-600"></i> Banding Sedang Ditinjau Admin</h3>
+                <p class="text-sm text-blue-800 mb-4">Anda telah mengajukan banding pada {{ $complaint->appealed_at->format('d M Y H:i') }}. Admin sedang meninjau bukti Anda.</p>
+                <div class="bg-white p-4 rounded-xl border border-blue-100">
+                    <p class="text-xs font-bold text-gray-500 mb-1">Alasan Banding Anda:</p>
+                    <p class="text-sm text-gray-800 mb-4">{{ $complaint->appeal_reason }}</p>
+                    
+                    @if($complaint->appeal_evidence_url)
+                        <p class="text-xs font-bold text-gray-500 mb-2">Bukti Banding:</p>
+                        @if(Str::endsWith($complaint->appeal_evidence_url, '.mp4'))
+                            <video src="{{ asset('storage/' . $complaint->appeal_evidence_url) }}" class="w-full max-w-sm rounded-xl border border-gray-200" controls></video>
+                        @else
+                            <img src="{{ asset('storage/' . $complaint->appeal_evidence_url) }}" class="w-full max-w-sm rounded-xl border border-gray-200">
+                        @endif
+                    @endif
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 </div>

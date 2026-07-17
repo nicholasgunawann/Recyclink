@@ -76,4 +76,29 @@ class AdminComplaintController extends Controller implements HasMiddleware
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
+
+    public function acceptAppeal(\Illuminate\Http\Request $request, Complaint $complaint)
+    {
+        $this->authorize('process', $complaint);
+        
+        $complaint->update([
+            'status' => Complaint::STATUS_REJECTED, // Reversing the decision so seller wins
+            'resolution_note' => $complaint->resolution_note . "\n\n[BANDING DITERIMA] " . $request->input('appeal_resolution_note'),
+        ]);
+
+        // We would also update wallet logic here in a real scenario to forward funds to seller.
+        return redirect()->back()->with('success', 'Banding diterima, dana diteruskan ke penjual.');
+    }
+
+    public function rejectAppeal(\Illuminate\Http\Request $request, Complaint $complaint)
+    {
+        $this->authorize('process', $complaint);
+        
+        $complaint->update([
+            'status' => Complaint::STATUS_RESOLVED, // Status stays resolved (buyer wins)
+            'resolution_note' => $complaint->resolution_note . "\n\n[BANDING DITOLAK] " . $request->input('appeal_resolution_note'),
+        ]);
+
+        return redirect()->back()->with('success', 'Banding ditolak, dana tetap dikembalikan ke pembeli.');
+    }
 }
