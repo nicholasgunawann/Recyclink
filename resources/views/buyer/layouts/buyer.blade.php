@@ -59,6 +59,10 @@
                 <i data-lucide="user" class="w-5 h-5"></i>
                 Profil
             </a>
+            <a href="{{ route('buyer.complaints.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold {{ request()->routeIs('buyer.complaints.*') ? 'bg-brand/10 text-brand' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} transition-colors">
+                <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                Pusat Resolusi
+            </a>
 
             <div class="pt-4 mt-4 border-t border-gray-100">
                 <a href="{{ route('marketplace.index') }}" class="flex items-center justify-between px-4 py-3 rounded-xl font-bold text-gray-700 bg-gray-50 hover:bg-brand hover:text-white border border-gray-200 hover:border-brand transition-all group">

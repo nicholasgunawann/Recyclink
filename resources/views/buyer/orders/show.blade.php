@@ -100,7 +100,7 @@
             </div>
 
             {{-- Action Buttons --}}
-            @if(in_array($order->order_status, ['pending', 'accepted', 'waiting_payment', 'paid', 'processing']))
+            @if(in_array($order->order_status, ['pending', 'accepted', 'waiting_payment', 'paid', 'processing', 'disputed']))
             <div class="bg-white border border-gray-200 rounded-2xl shadow-sm px-6 py-4 flex flex-col sm:flex-row gap-3">
                 
                 @if($order->order_status === 'waiting_payment')
@@ -116,6 +116,19 @@
                         <i data-lucide="check-circle-2" class="w-4 h-4"></i> Pesanan Diterima
                     </button>
                 </form>
+                
+                <a href="{{ route('buyer.complaints.create', $order->id) }}" class="px-5 py-2.5 bg-orange-100 hover:bg-orange-200 text-orange-700 border border-orange-200 font-bold text-sm rounded-xl transition-colors flex justify-center items-center gap-2 flex-none">
+                    <i data-lucide="alert-triangle" class="w-4 h-4"></i> Ajukan Komplain
+                </a>
+                @endif
+
+                @if($order->order_status === 'disputed')
+                @php
+                    $complaint = \App\Models\Complaint::where('order_id', $order->id)->first();
+                @endphp
+                <a href="{{ route('buyer.complaints.show', $complaint->id) }}" class="px-5 py-2.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-200 font-bold text-sm rounded-xl transition-colors w-full flex justify-center items-center gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i> Lihat Resolusi Komplain
+                </a>
                 @endif
 
                 @if(in_array($order->order_status, ['pending', 'waiting_payment', 'accepted']))

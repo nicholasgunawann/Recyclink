@@ -143,6 +143,13 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
         Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('conversations.messages.store');
     });
+
+    // Buyer Complaints
+    Route::get('/orders/{order}/complaint/create', [App\Http\Controllers\Buyer\BuyerComplaintController::class, 'create'])->name('buyer.complaints.create');
+    Route::post('/orders/{order}/complaint', [App\Http\Controllers\Buyer\BuyerComplaintController::class, 'store'])->name('buyer.complaints.store');
+    Route::get('/buyer/complaints', [App\Http\Controllers\Buyer\BuyerComplaintController::class, 'index'])->name('buyer.complaints.index');
+    Route::get('/buyer/complaints/{complaint}', [App\Http\Controllers\Buyer\BuyerComplaintController::class, 'show'])->name('buyer.complaints.show');
+    Route::post('/buyer/complaints/{complaint}/messages', [App\Http\Controllers\Buyer\BuyerComplaintController::class, 'storeMessage'])->name('buyer.complaints.messages.store');
 });
 
 /*

@@ -312,11 +312,18 @@
             {{-- Metode --}}
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1.5">Metode Pengambilan</label>
-                <input type="hidden" name="pickup_method" value="self_pickup">
-                <div class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 text-gray-600 font-medium">
-                    Ambil Sendiri
-                </div>
+                <select name="pickup_method" id="modal-pickup-method" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand bg-white text-gray-700" onchange="toggleAddressField(this.value, 'modal-address-container')">
+                    <option value="self_pickup">Ambil Sendiri (Pickup)</option>
+                    <option value="delivery">Kirim ke Lokasi Buyer</option>
+                </select>
             </div>
+            
+            {{-- Alamat (Hidden by default, shown if delivery) --}}
+            <div id="modal-address-container" class="hidden">
+                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Alamat Pengiriman</label>
+                <textarea name="pickup_address" rows="2" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand resize-none" placeholder="Masukkan alamat lengkap Anda..."></textarea>
+            </div>
+            
             {{-- Jadwal --}}
             <div class="grid grid-cols-2 gap-3">
                 <div>
@@ -359,6 +366,15 @@ input[type="number"]::-webkit-outer-spin-button {
 
 @push('scripts')
 <script>
+window.toggleAddressField = function(val, containerId) {
+    const el = document.getElementById(containerId);
+    if(val === 'delivery') {
+        el.classList.remove('hidden');
+    } else {
+        el.classList.add('hidden');
+    }
+};
+
 (function() {
     // 1. Smart back button logic (history.back to preserve state)
     const backBtn = document.getElementById('btn-back');

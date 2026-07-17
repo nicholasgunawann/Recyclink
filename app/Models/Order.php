@@ -37,6 +37,7 @@ class Order extends Model
     public const STATUS_PROCESSING = 'processing';
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_DISPUTED = 'disputed';
 
     protected $fillable = [
         'order_code', 'buyer_id', 'seller_id', 'order_status', 'total_amount',

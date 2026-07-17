@@ -109,9 +109,11 @@ class BuyerCartController extends Controller implements HasMiddleware
                 try {
                     $order = $orderService->createOrder(auth()->user(), $listing, [
                         'quantity' => $item['quantity'],
-                        'pickup_method' => 'self_pickup', 
-                        'pickup_date' => now()->addDays(1)->format('Y-m-d'),
-                        'pickup_time' => '10:00',
+                        'pickup_method' => $request->input('pickup_method', 'self_pickup'), 
+                        'pickup_date' => $request->input('pickup_date'),
+                        'pickup_time' => $request->input('pickup_time'),
+                        'pickup_address' => $request->input('pickup_address'),
+                        'buyer_note' => $request->input('buyer_note'),
                     ]);
                     $orders[] = $order;
                     // Remove processed item from cart

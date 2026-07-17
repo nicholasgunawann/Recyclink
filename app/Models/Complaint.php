@@ -45,4 +45,5 @@ class Complaint extends Model
     public function complainant(): BelongsTo { return $this->belongsTo(User::class, 'complainant_id'); }
     public function admin(): BelongsTo       { return $this->belongsTo(User::class, 'admin_id'); }
     public function respondent(): BelongsTo  { return $this->belongsTo(User::class, 'respondent_id'); }
+    public function messages(): \Illuminate\Database\Eloquent\Relations\HasMany { return $this->hasMany(ComplaintMessage::class); }
 }
