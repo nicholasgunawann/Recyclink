@@ -107,15 +107,7 @@
                     
                 </div>
                 
-                {{-- Map Placeholder --}}
-                <div class="w-full h-64 bg-gradient-to-br from-gray-200 to-gray-300 rounded-3xl relative flex items-center justify-center mt-auto overflow-hidden shadow-inner">
-                    <div class="bg-white px-4 py-2 rounded-full shadow-md flex items-center gap-2 relative z-10">
-                        <i data-lucide="map-pin" class="w-4 h-4 text-gray-700"></i>
-                        <span class="text-sm font-bold text-gray-700">HQ Recyclink</span>
-                    </div>
-                    {{-- Decorative pattern for map background --}}
-                    <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#9ca3af 1px, transparent 1px); background-size: 20px 20px;"></div>
-                </div>
+
                 
             </div>
             

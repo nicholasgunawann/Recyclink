@@ -11,21 +11,7 @@
                 <p class="text-sm text-gray-500 leading-relaxed">
                     Platform marketplace limbah yang menghubungkan penghasil limbah dengan pengepul dan industri daur ulang secara transparan.
                 </p>
-                {{-- Sosial Media --}}
-                <div class="flex items-center gap-3 mt-5">
-                    <a href="#" aria-label="Facebook"
-                       class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-brand hover:text-white transition-colors">
-                        <i data-lucide="facebook" class="w-4 h-4"></i>
-                    </a>
-                    <a href="#" aria-label="Instagram"
-                       class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-brand hover:text-white transition-colors">
-                        <i data-lucide="instagram" class="w-4 h-4"></i>
-                    </a>
-                    <a href="#" aria-label="TikTok"
-                       class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-brand hover:text-white transition-colors">
-                        <i data-lucide="music" class="w-4 h-4"></i>
-                    </a>
-                </div>
+
             </div>
 
             {{-- Platform --}}

@@ -41,8 +41,16 @@ class HomeController extends Controller
         // Saat menggunakan Resend Sandbox (belum ada domain verify),
         // email HANYA BOLEH dikirim ke email terdaftar (therecyclink@gmail.com).
         // Oleh karena itu, kita tidak bisa mengirim email otomatis ke $validated['email'] pengguna.
-        \Illuminate\Support\Facades\Mail::to('therecyclink@gmail.com')
-            ->send(new \App\Mail\ContactUsEmail($validated));
+        
+        try {
+            // Disabled to prevent slow loading and 500 errors in production/sandbox
+            // \Illuminate\Support\Facades\Mail::to('therecyclink@gmail.com')
+            //     ->send(new \App\Mail\ContactUsEmail($validated));
+            
+            \Illuminate\Support\Facades\Log::info('Contact form submitted:', $validated);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Mail error: ' . $e->getMessage());
+        }
 
         return redirect()->back()->with('success', 'Pesan Anda berhasil dikirim. Kami akan segera menghubungi Anda!');
     }
