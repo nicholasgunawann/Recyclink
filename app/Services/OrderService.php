@@ -62,7 +62,7 @@ class OrderService
             }
 
             $subtotal = $lockedListing->price_per_unit * $quantity;
-            $platformFee = $subtotal * 0.05;
+            $platformFee = 0.00; // No platform fee for buyer
             $shippingCost = 0.00;
             $totalAmount = $subtotal + $platformFee + $shippingCost;
 

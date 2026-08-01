@@ -45,7 +45,7 @@ class BuyerPaymentController extends Controller implements HasMiddleware
 
         $method = $request->input('payment_method', 'cash_on_delivery');
 
-        $basePlatformFee = $order->subtotal * 0.05;
+        $basePlatformFee = 0.00; // No base platform fee, only gateway fee
         $baseTotal = $order->subtotal + $order->shipping_cost + $basePlatformFee;
 
         // Dynamic fee rules
@@ -69,7 +69,7 @@ class BuyerPaymentController extends Controller implements HasMiddleware
             // But since payment is created later, we can just apply it.
             // Wait, what if they fail to checkout and come back? We need to ensure we don't add fee twice.
             // A safer way is to recalculate from subtotal + shipping_cost + base 5% platform fee.
-            $basePlatformFee = $order->subtotal * 0.05;
+            $basePlatformFee = 0.00; // No base platform fee, only gateway fee
             $newPlatformFee = $basePlatformFee + $rule['fee'];
             $newTotalAmount = $order->subtotal + $order->shipping_cost + $newPlatformFee;
 

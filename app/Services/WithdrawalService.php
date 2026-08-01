@@ -43,12 +43,15 @@ class WithdrawalService
             // debit() internally decrements balance and records a transaction
             $this->walletService->withdraw($seller, $amount, "Withdrawal request.");
 
+            $adminFee = $amount * 0.03;
+            $netAmount = $amount - $adminFee;
+
             $withdrawal = Withdrawal::create([
                 'wallet_id' => $wallet->id,
                 'user_id' => $seller->id,
                 'amount' => $amount,
-                'net_amount' => $amount,
-                'admin_fee' => 0.00,
+                'net_amount' => $netAmount,
+                'admin_fee' => $adminFee,
                 'bank_name' => $data['bank_name'],
                 'bank_account_number' => $data['bank_account_number'] ?? $data['account_number'] ?? null,
                 'bank_account_name' => $data['bank_account_name'] ?? $data['account_holder_name'] ?? null,
