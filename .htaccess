@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1. Blokir akses publik ke folder .git rahasia (Keamanan)
+    RedirectMatch 404 /\.git
+
+    # 2. Alihkan traffic domain langsung ke folder public Laravel
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
