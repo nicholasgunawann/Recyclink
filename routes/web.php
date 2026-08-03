@@ -64,7 +64,7 @@ Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marke
 Route::get('/marketplace/{wasteListing}', [MarketplaceController::class, 'show'])->name('marketplace.show');
 Route::get('/toko/{user}', [MarketplaceController::class, 'store'])->name('marketplace.store');
 Route::get('/tentang', [HomeController::class, 'tentang'])->name('tentang');
-Route::post('/kontak', [HomeController::class, 'submitContact'])->name('kontak.submit');
+Route::post('/kontak', [HomeController::class, 'submitContact'])->name('kontak.submit')->middleware('throttle:5,1');
 
 /*
 |--------------------------------------------------------------------------
