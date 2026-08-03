@@ -54,6 +54,7 @@ jobs:
             export PATH="/opt/cpanel/ea-php83/root/usr/bin:/usr/local/bin:/opt/alt/php83/usr/bin:$PATH"
             /usr/bin/git fetch --depth=1 https://github.com/nicholasgunawann/Recyclink.git main
             /usr/bin/git reset --hard FETCH_HEAD
+            echo -e "<IfModule mod_rewrite.c>\n    RewriteEngine On\n    RewriteRule ^$ public/ [L]\n    RewriteRule (.*) public/\$1 [L]\n</IfModule>" > .htaccess
             composer install --no-dev --optimize-autoloader --no-scripts
             (ea-php83 artisan package:discover --ansi || php artisan package:discover --ansi) || true
             (ea-php83 artisan migrate --force || php artisan migrate --force) || true
