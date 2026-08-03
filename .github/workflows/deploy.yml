@@ -46,10 +46,11 @@ jobs:
         with:
           host: ${{ secrets.DOMAINESIA_HOST }}
           username: ${{ secrets.DOMAINESIA_USER }}
+          key: ${{ secrets.DOMAINESIA_SSH_KEY }}
           password: ${{ secrets.DOMAINESIA_PASSWORD }}
           port: ${{ secrets.DOMAINESIA_PORT || 22 }}
           script: |
-            cd /home/${{ secrets.DOMAINESIA_USER }}/public_html
+            cd ${{ secrets.DOMAINESIA_PATH || format('/home/{0}/public_html', secrets.DOMAINESIA_USER) }}
             git pull origin main
             composer install --no-dev --optimize-autoloader
             php artisan migrate --force
