@@ -42,16 +42,16 @@ jobs:
         run: php artisan test
 
       - name: Deploy via SSH to DomaiNesia
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.DOMAINESIA_HOST }}
-          username: ${{ secrets.DOMAINESIA_USER }}
-          key: ${{ secrets.DOMAINESIA_SSH_KEY }}
-          password: ${{ secrets.DOMAINESIA_PASSWORD }}
-          port: ${{ secrets.DOMAINESIA_PORT || 22 }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            cd ${{ secrets.DOMAINESIA_PATH || format('/home/{0}/public_html', secrets.DOMAINESIA_USER) }}
-            git pull origin main
+            cd public_html
+            /usr/bin/git fetch --depth=1 https://github.com/nicholasgunawann/Recyclink.git main
+            /usr/bin/git checkout -f FETCH_HEAD
             composer install --no-dev --optimize-autoloader
             php artisan migrate --force
             php artisan db:seed --force
