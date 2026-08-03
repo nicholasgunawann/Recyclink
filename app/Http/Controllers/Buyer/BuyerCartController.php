@@ -21,16 +21,17 @@ class BuyerCartController extends Controller implements HasMiddleware
         $cartData = session()->get('cart', []);
         $cartIds = array_keys($cartData);
         
-        // Fetch listings based on session IDs
-        $cartItemsRaw = \App\Models\WasteListing::with('seller', 'category', 'primaryImage')
+        // Fetch listings based on session IDs with full eager loading
+        $cartItemsRaw = \App\Models\WasteListing::with(['seller.sellerProfile', 'category', 'primaryImage'])
                             ->whereIn('id', $cartIds)
                             ->get();
         
-        // To match the previous UI structure where $item->listing was used in the view:
-        // We will map it so $item->listing works, or update the view. It's easier to just pass the listings
-        // and adjust the view to expect $item as the listing. Wait, in my previous view I did:
-        // @php $listing = $item->listing; @endphp.
-        // Let's create dummy objects so I don't have to change the view again!
+        $favoriteListingIds = auth()->check()
+            ? \Illuminate\Support\Facades\Cache::remember("buyer_fav_ids_" . auth()->id(), 300, function () {
+                return auth()->user()->favoriteListings()->pluck('listing_id')->toArray();
+            })
+            : [];
+
         $cartItems = $cartItemsRaw->map(function ($listing) use ($cartData) {
             return (object) [
                 'listing' => $listing,
@@ -41,7 +42,7 @@ class BuyerCartController extends Controller implements HasMiddleware
         // We wrap it in a LengthAwarePaginator just to make the links() method not fail in the view
         $cartItems = new \Illuminate\Pagination\LengthAwarePaginator($cartItems, $cartItems->count(), 15, 1);
 
-        return view('buyer.cart.index', compact('cartItems'));
+        return view('buyer.cart.index', compact('cartItems', 'favoriteListingIds'));
     }
 
     public function store(Request $request, \App\Models\WasteListing $wasteListing)

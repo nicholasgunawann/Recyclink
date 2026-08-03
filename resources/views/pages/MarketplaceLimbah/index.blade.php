@@ -242,30 +242,44 @@
     }
 
     function showSkeletons(type) {
-        const grid = document.getElementById(type === 'produk' ? 'card-grid' : 'toko-grid');
+        const isProd = type === 'produk';
+        const cardGrid = document.getElementById('card-grid');
+        const tokoGrid = document.getElementById('toko-grid');
+        if (cardGrid) cardGrid.classList.toggle('hidden', !isProd);
+        if (tokoGrid) tokoGrid.classList.toggle('hidden', isProd);
+
+        const targetGrid = isProd ? cardGrid : tokoGrid;
+        if (!targetGrid) return;
+
         let html = '';
-        for (let i = 0; i < state.perPage; i++) {
-            html += type === 'produk' ? `
-            <div class="bg-white rounded-xl border border-gray-100 overflow-hidden animate-pulse flex flex-col h-full">
-                <div class="aspect-square bg-gray-100 w-full"></div>
+        const count = state.perPage || 18;
+        for (let i = 0; i < count; i++) {
+            html += isProd ? `
+            <div class="bg-white rounded-xl border border-gray-100 overflow-hidden animate-pulse flex flex-col h-full shadow-xs">
+                <div class="aspect-square bg-gray-200/80 w-full"></div>
                 <div class="p-3 flex flex-col gap-2 flex-1 justify-between">
                     <div class="space-y-1.5">
-                        <div class="h-3 bg-gray-200 rounded w-full"></div>
-                        <div class="h-3 bg-gray-200 rounded w-3/4"></div>
+                        <div class="h-3.5 bg-gray-200 rounded-md w-full"></div>
+                        <div class="h-3.5 bg-gray-200 rounded-md w-3/4"></div>
                     </div>
-                    <div class="h-4 bg-gray-200 rounded w-1/2 mt-1"></div>
-                    <div class="h-3 bg-gray-100 rounded w-2/3 mt-1"></div>
+                    <div class="h-4 bg-brand/20 rounded-md w-1/2 mt-1"></div>
+                    <div class="flex items-center justify-between mt-1">
+                        <div class="h-3 bg-gray-100 rounded w-1/3"></div>
+                        <div class="h-3 bg-gray-100 rounded w-1/4"></div>
+                    </div>
                 </div>
             </div>` : `
-            <div class="bg-white border-0 rounded-2xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] animate-pulse flex flex-col items-center text-center">
-                <div class="w-16 h-16 rounded-full bg-gray-200 mb-3"></div>
-                <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div class="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
-                <div class="h-9 bg-gray-100 rounded-xl w-full"></div>
+            <div class="bg-white border border-gray-100 rounded-xl p-5 shadow-xs animate-pulse flex flex-col items-center text-center h-full">
+                <div class="w-20 h-20 rounded-full bg-gray-200/80 mb-3"></div>
+                <div class="h-4 bg-gray-200 rounded-md w-3/4 mb-2"></div>
+                <div class="h-3 bg-gray-100 rounded-md w-1/2 mb-3"></div>
+                <div class="h-6 bg-brand/10 rounded-full w-1/3 mb-4"></div>
+                <div class="mt-auto h-9 bg-gray-100 rounded-xl w-full"></div>
             </div>`;
         }
-        grid.innerHTML = html;
-        document.getElementById('pagination').innerHTML = '';
+        targetGrid.innerHTML = html;
+        const pg = document.getElementById('pagination');
+        if (pg) pg.innerHTML = '';
     }
 
     function renderCards(data, total) {
@@ -420,12 +434,14 @@
 
     window.goPage = function(p) {
         state.page = p;
+        showSkeletons(state.tab);
         fetchData();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     function refresh() {
         state.page = 1;
+        showSkeletons(state.tab);
         fetchData();
     }
 
@@ -445,6 +461,7 @@
                 if (section) section.style.display = isProd ? 'block' : 'none';
             });
 
+            showSkeletons(tab);
             refresh();
         };
 
@@ -461,6 +478,7 @@
             state.search = e.target.value;
             searchClear.classList.toggle('hidden', !e.target.value);
             state.page = 1;
+            showSkeletons(state.tab);
             debouncedRefresh();
         });
 
@@ -524,14 +542,15 @@
                 }
                 state.categories = Array.from(new Set(state.categories));
                 state.page = 1;
+                showSkeletons(state.tab);
                 debouncedRefresh();
             });
         });
 
-        el('search-lokasi')?.addEventListener('input', e => { state.searchLokasi = e.target.value; state.page = 1; debouncedRefresh(); });
-        el('volume-min')?.addEventListener('input', e => { state.volumeMin = e.target.value ? parseFloat(e.target.value) : null; state.page = 1; debouncedRefresh(); });
-        el('harga-min')?.addEventListener('input', e => { state.hargaMin = e.target.value ? parseInt(e.target.value) : null; state.page = 1; debouncedRefresh(); });
-        el('harga-max')?.addEventListener('input', e => { state.hargaMax = e.target.value ? parseInt(e.target.value) : null; state.page = 1; debouncedRefresh(); });
+        el('search-lokasi')?.addEventListener('input', e => { state.searchLokasi = e.target.value; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); });
+        el('volume-min')?.addEventListener('input', e => { state.volumeMin = e.target.value ? parseFloat(e.target.value) : null; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); });
+        el('harga-min')?.addEventListener('input', e => { state.hargaMin = e.target.value ? parseInt(e.target.value) : null; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); });
+        el('harga-max')?.addEventListener('input', e => { state.hargaMax = e.target.value ? parseInt(e.target.value) : null; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); });
         el('filter-status')?.addEventListener('change', e => { state.statusAvailable = e.target.checked; state.page = 1; refresh(); });
         el('sort-select')?.addEventListener('change', e => { state.sort = e.target.value; state.page = 1; refresh(); });
 
@@ -554,11 +573,18 @@
         refresh();
     }
 
-    document.addEventListener('turbo:load', initMarketplace);
-    if (document.readyState !== 'loading') {
+    let isMarketplaceInit = false;
+    function safeInitMarketplace() {
+        if (isMarketplaceInit) return;
+        isMarketplaceInit = true;
         initMarketplace();
+    }
+
+    document.addEventListener('turbo:load', () => { isMarketplaceInit = false; safeInitMarketplace(); });
+    if (document.readyState !== 'loading') {
+        safeInitMarketplace();
     } else {
-        document.addEventListener('DOMContentLoaded', initMarketplace);
+        document.addEventListener('DOMContentLoaded', safeInitMarketplace, { once: true });
     }
 </script>
 @endpush

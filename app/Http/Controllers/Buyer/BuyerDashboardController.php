@@ -15,14 +15,17 @@ class BuyerDashboardController extends Controller implements HasMiddleware
         ];
     }
 
-    // ponytail: load buyer overview statistics with caching
+    // ponytail: load buyer overview statistics and recent transactions
     public function index()
     {
         $user = auth()->user()->load(['buyerProfile']);
         $summary = $user->getCachedBuyerSummary();
-        $ordersCount = $summary['orders_count'];
-        $favoritesCount = $summary['favorites_count'];
+        $recentOrders = \App\Models\Order::where('buyer_id', $user->id)
+            ->with(['seller.sellerProfile', 'items'])
+            ->latest()
+            ->take(5)
+            ->get();
 
-        return view('buyer.dashboard', compact('user', 'ordersCount', 'favoritesCount'));
+        return view('buyer.dashboard', array_merge($summary, compact('user', 'recentOrders')));
     }
 }

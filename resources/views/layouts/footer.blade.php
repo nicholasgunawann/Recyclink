@@ -18,10 +18,10 @@
             <div>
                 <h4 class="text-sm font-semibold text-gray-900 mb-4">Platform</h4>
                 <ul class="space-y-2.5">
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-brand transition-colors">Jelajah Limbah</a></li>
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-brand transition-colors">Pasang Iklan Limbah</a></li>
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-brand transition-colors">Kategori Limbah</a></li>
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-brand transition-colors">Harga Limbah Terkini</a></li>
+                    <li><a href="{{ url('/marketplace') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Jelajah Limbah</a></li>
+                    <li><a href="{{ url('/register') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Pasang Iklan Limbah</a></li>
+                    <li><a href="{{ url('/marketplace') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Kategori Limbah</a></li>
+                    <li><a href="{{ url('/marketplace') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Harga Limbah Terkini</a></li>
                 </ul>
             </div>
 
@@ -30,8 +30,8 @@
                 <h4 class="text-sm font-semibold text-gray-900 mb-4">Perusahaan</h4>
                 <ul class="space-y-2.5">
                     <li><a href="{{ url('/tentang') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Tentang & Kontak</a></li>
-                    <li><a href="{{ url('/edukasi') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Edukasi</a></li>
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-brand transition-colors">Karir</a></li>
+                    <li><a href="{{ url('/education') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Edukasi</a></li>
+                    <li><a href="{{ url('/tentang') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Karir</a></li>
                 </ul>
             </div>
 
@@ -39,10 +39,10 @@
             <div>
                 <h4 class="text-sm font-semibold text-gray-900 mb-4">Dukungan</h4>
                 <ul class="space-y-2.5">
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-brand transition-colors">Pusat Bantuan</a></li>
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-brand transition-colors">Hubungi Kami</a></li>
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-brand transition-colors">Kebijakan Privasi</a></li>
-                    <li><a href="#" class="text-sm text-gray-500 hover:text-brand transition-colors">Syarat & Ketentuan</a></li>
+                    <li><a href="{{ url('/tentang') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Pusat Bantuan</a></li>
+                    <li><a href="{{ url('/tentang') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Hubungi Kami</a></li>
+                    <li><a href="{{ url('/tentang') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Kebijakan Privasi</a></li>
+                    <li><a href="{{ url('/tentang') }}" class="text-sm text-gray-500 hover:text-brand transition-colors">Syarat & Ketentuan</a></li>
                 </ul>
             </div>
         </div>

@@ -42,19 +42,19 @@ function initEdukasiTabs() {
             // 2. Set active tab styling
             newBtn.className = "tab-btn active-tab flex items-center gap-2 text-sm font-semibold text-brand py-4 border-b-2 border-brand whitespace-nowrap";
             
-            // 3. Hide all content
+            const targetId = newBtn.getAttribute('data-target');
+            const targetContent = document.getElementById(targetId);
+
             const allContents = document.querySelectorAll('.tab-content');
             allContents.forEach(content => {
                 content.classList.add('hidden');
                 content.classList.remove('block');
             });
-            
-            // 4. Show target content
-            const targetId = newBtn.getAttribute('data-target');
-            const targetContent = document.getElementById(targetId);
+
             if (targetContent) {
                 targetContent.classList.remove('hidden');
-                targetContent.classList.add('block');
+                targetContent.classList.add('block', 'animate-pulse');
+                setTimeout(() => targetContent.classList.remove('animate-pulse'), 180);
             }
         });
     });

@@ -92,7 +92,7 @@
                             <div class="flex justify-end items-center gap-5 mt-4">
                                 <!-- Favorite icon -->
                                 @php
-                                    $isFav = auth()->user()->favoriteListings()->where('listing_id', $listing->id)->exists();
+                                    $isFav = in_array($listing->id, $favoriteListingIds ?? []);
                                 @endphp
                                 @if($isFav)
                                 <form method="POST" action="{{ route('buyer.favorites.destroy', $listing->id) }}" class="m-0 relative top-0.5">

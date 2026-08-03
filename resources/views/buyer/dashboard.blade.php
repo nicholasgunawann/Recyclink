@@ -47,7 +47,7 @@
         </div>
         <div>
             <p class="text-sm text-gray-500 font-medium">Pesanan Diproses</p>
-            <h4 class="text-2xl font-bold text-gray-900 mt-1">0</h4>
+            <h4 class="text-2xl font-bold text-gray-900 mt-1">{{ $processing_orders_count ?? 0 }}</h4>
         </div>
     </div>
 
@@ -69,24 +69,70 @@
         </div>
         <div>
             <p class="text-sm text-gray-500 font-medium">Pesanan Selesai</p>
-            <h4 class="text-2xl font-bold text-gray-900 mt-1">0</h4>
+            <h4 class="text-2xl font-bold text-gray-900 mt-1">{{ $completed_orders_count ?? 0 }}</h4>
         </div>
     </div>
 </div>
 
 <!-- Recent Activity -->
 <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
-    <h4 class="text-lg font-bold text-gray-900 mb-6">Aktivitas Terkini</h4>
-    <div class="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/50">
-        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <i data-lucide="activity" class="w-8 h-8 text-gray-400"></i>
-        </div>
-        <h5 class="text-gray-900 font-bold">Belum Ada Aktivitas</h5>
-        <p class="text-gray-500 text-sm mt-2 max-w-sm">Anda belum melakukan transaksi atau menyimpan limbah apa pun. Mulai cari limbah sekarang!</p>
-        <a href="{{ url('/marketplace') }}" class="mt-6 px-6 py-2.5 bg-brand text-white font-bold rounded-xl hover:bg-brand-hover transition-colors inline-flex items-center gap-2">
-            Eksplorasi Marketplace <i data-lucide="arrow-right" class="w-4 h-4"></i>
-        </a>
+    <div class="flex items-center justify-between mb-6">
+        <h4 class="text-lg font-bold text-gray-900">Aktivitas Terkini</h4>
+        @if(($recentOrders ?? collect())->isNotEmpty())
+            <a href="{{ route('buyer.orders.index') }}" class="text-brand font-bold text-sm hover:underline">Lihat Semua Pesanan</a>
+        @endif
     </div>
+
+    @if(($recentOrders ?? collect())->isEmpty())
+        <div class="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/50">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <i data-lucide="activity" class="w-8 h-8 text-gray-400"></i>
+            </div>
+            <h5 class="text-gray-900 font-bold">Belum Ada Aktivitas</h5>
+            <p class="text-gray-500 text-sm mt-2 max-w-sm">Anda belum melakukan transaksi atau menyimpan limbah apa pun. Mulai cari limbah sekarang!</p>
+            <a href="{{ url('/marketplace') }}" class="mt-6 px-6 py-2.5 bg-brand text-white font-bold rounded-xl hover:bg-brand-hover transition-colors inline-flex items-center gap-2">
+                Eksplorasi Marketplace <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+        </div>
+    @else
+        <div class="divide-y divide-gray-100">
+            @php
+                // ponytail: reusable status map
+                $statusConfig = [
+                    'pending' => ['bg' => 'bg-amber-50 text-amber-700 border-amber-200', 'label' => 'Menunggu Konfirmasi'],
+                    'waiting_payment' => ['bg' => 'bg-blue-50 text-blue-700 border-blue-200', 'label' => 'Menunggu Pembayaran'],
+                    'paid' => ['bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'label' => 'Sudah Dibayar'],
+                    'processing' => ['bg' => 'bg-indigo-50 text-indigo-700 border-indigo-200', 'label' => 'Diproses'],
+                    'completed' => ['bg' => 'bg-gray-100 text-gray-700 border-gray-200', 'label' => 'Selesai'],
+                    'rejected' => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200', 'label' => 'Ditolak'],
+                    'cancelled' => ['bg' => 'bg-red-50 text-red-700 border-red-200', 'label' => 'Dibatalkan']
+                ];
+            @endphp
+            @foreach($recentOrders as $order)
+                @php
+                    $st = $statusConfig[$order->order_status] ?? ['bg' => 'bg-gray-50 text-gray-700 border-gray-200', 'label' => strtoupper($order->order_status)];
+                    $firstItem = $order->items->first();
+                @endphp
+                <div class="py-4 flex items-center justify-between gap-4 hover:bg-gray-50/50 rounded-xl px-2 transition-colors">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-mono font-bold text-sm text-gray-900">{{ $order->order_code }}</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $st['bg'] }}">
+                                {{ $st['label'] }}
+                            </span>
+                        </div>
+                        <p class="text-xs text-gray-600 truncate">
+                            <span class="font-semibold text-gray-800">{{ $order->seller->sellerProfile->store_name ?? $order->seller->name ?? 'Toko' }}</span> • {{ $firstItem->waste_name_snapshot ?? 'Limbah' }}
+                        </p>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <div class="font-bold text-sm text-brand">Rp {{ number_format((float)$order->total_amount, 0, ',', '.') }}</div>
+                        <a href="{{ route('buyer.orders.show', $order->id) }}" class="text-xs text-brand hover:underline font-semibold mt-0.5 inline-block">Detail →</a>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
 </div>
 
 @endsection

@@ -18,7 +18,8 @@
                     'open' => ['bg' => 'bg-amber-50 border-amber-200 text-amber-700', 'label' => 'Terbuka'],
                     'under_review' => ['bg' => 'bg-indigo-50 border-indigo-200 text-indigo-700', 'label' => 'Sedang Ditinjau'],
                     'resolved' => ['bg' => 'bg-emerald-50 border-emerald-200 text-emerald-700', 'label' => 'Selesai'],
-                    'rejected' => ['bg' => 'bg-rose-50 border-rose-200 text-rose-700', 'label' => 'Ditolak']
+                    'rejected' => ['bg' => 'bg-rose-50 border-rose-200 text-rose-700', 'label' => 'Ditolak'],
+                    'appealed' => ['bg' => 'bg-purple-50 border-purple-200 text-purple-700', 'label' => 'Banding Ditinjau']
                 ];
                 $status = $statusConfig[$complaint->status] ?? ['bg' => 'bg-gray-50 border-gray-200 text-gray-700', 'label' => strtoupper($complaint->status)];
             @endphp
@@ -46,7 +47,7 @@
     {{-- Main Grid --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {{-- Left column (Dispute Info, Evidence) --}}
+        {{-- Left column (Dispute Info, Evidence, Chat, Actions) --}}
         <div class="lg:col-span-2 space-y-6">
             
             {{-- Complaint Information --}}
@@ -89,6 +90,71 @@
                     </a>
                 @else
                     <p class="text-gray-400 text-sm italic">Tidak ada bukti gambar pendukung yang diunggah.</p>
+                @endif
+            </div>
+
+            {{-- Chat Room / Ruang Diskusi (Admin View) --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[500px]">
+                <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                    <div>
+                        <h4 class="font-bold text-gray-900 text-base">Riwayat Diskusi Resolusi</h4>
+                        <p class="text-xs text-gray-500">Percakapan antara Pembeli, Penjual, dan Admin</p>
+                    </div>
+                    <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-brand/10 text-brand">Pusat Mediasi</span>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50" id="chat-container">
+                    @forelse($complaint->messages ?? [] as $msg)
+                        <div class="flex {{ $msg->user_id === auth()->id() ? 'justify-end' : 'justify-start' }}">
+                            <div class="max-w-[75%] flex gap-3 {{ $msg->user_id === auth()->id() ? 'flex-row-reverse' : '' }}">
+                                <img src="https://ui-avatars.com/api/?name={{ urlencode($msg->user->name ?? 'User') }}&background={{ $msg->user?->isAdmin() ? '7A9C59' : ($msg->user_id === $complaint->complainant_id ? '3b82f6' : '14b8a6') }}&color=fff" class="w-8 h-8 rounded-full shrink-0 mt-1">
+                                <div class="{{ $msg->user_id === auth()->id() ? 'bg-brand text-white' : ($msg->user?->isAdmin() ? 'bg-purple-600 text-white' : 'bg-white border border-gray-200 text-gray-800') }} p-3 rounded-2xl shadow-sm">
+                                    <p class="text-xs font-bold mb-1 opacity-80 {{ $msg->user_id === auth()->id() ? 'text-right' : '' }}">
+                                        {{ $msg->user->name ?? 'User' }} 
+                                        @if($msg->user?->isAdmin()) (Admin) 
+                                        @elseif($msg->user_id === $complaint->complainant_id) (Pelapor / Pembeli) 
+                                        @elseif($msg->user_id === $complaint->respondent_id) (Terlapor / Penjual) 
+                                        @endif
+                                    </p>
+                                    <p class="text-sm whitespace-pre-wrap">{{ $msg->message }}</p>
+                                    
+                                    @if($msg->attachment_url)
+                                        <a href="{{ asset('storage/' . $msg->attachment_url) }}" target="_blank" class="block mt-2">
+                                            @if(Str::endsWith($msg->attachment_url, '.mp4'))
+                                                <video src="{{ asset('storage/' . $msg->attachment_url) }}" class="w-full h-24 object-cover rounded-xl" controls></video>
+                                            @else
+                                                <img src="{{ asset('storage/' . $msg->attachment_url) }}" class="w-full h-24 object-cover rounded-xl">
+                                            @endif
+                                        </a>
+                                    @endif
+                                    
+                                    <p class="text-[10px] mt-2 text-right opacity-60">{{ $msg->created_at->format('d M H:i') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="h-full flex items-center justify-center text-center">
+                            <div>
+                                <i data-lucide="message-square" class="w-10 h-10 text-gray-300 mx-auto mb-2"></i>
+                                <p class="text-gray-500 text-sm">Belum ada diskusi tercatat dalam sengketa ini.</p>
+                            </div>
+                        </div>
+                    @endforelse
+                </div>
+
+                @if(!$complaint->isResolved() && $complaint->status !== \App\Models\Complaint::STATUS_APPEALED)
+                <div class="p-3 bg-white border-t border-gray-100">
+                    <form action="{{ route('admin.complaints.messages.store', $complaint->id) }}" method="POST" enctype="multipart/form-data" class="flex gap-3 items-end">
+                        @csrf
+                        <div class="flex-1">
+                            <textarea name="message" rows="2" class="w-full border-gray-200 rounded-xl focus:ring-brand focus:border-brand px-3 py-2 text-sm resize-none bg-gray-50" placeholder="Tulis instruksi atau tanggapan Admin..." required></textarea>
+                            <input type="file" name="attachment" accept="image/jpeg,image/png,video/mp4,application/pdf" class="mt-1 text-xs text-gray-500">
+                        </div>
+                        <button type="submit" class="h-10 px-5 bg-brand hover:bg-brand-hover text-white font-bold text-xs rounded-xl transition-colors shadow shrink-0 flex items-center gap-1.5">
+                            <i data-lucide="send" class="w-4 h-4"></i> Kirim Pesan Admin
+                        </button>
+                    </form>
+                </div>
                 @endif
             </div>
 

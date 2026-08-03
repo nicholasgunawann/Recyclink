@@ -65,6 +65,9 @@ class ComplaintService
                 'status' => Complaint::STATUS_OPEN,
             ]);
 
+            // Change order status to disputed
+            $order->update(['order_status' => Order::STATUS_DISPUTED]);
+
             // Log activity
             $this->activityLogService->log(
                 'complaint.create',
@@ -109,7 +112,7 @@ class ComplaintService
         });
     }
 
-    // ponytail: admin resolves the complaint
+    // ponytail: admin resolves the complaint (Buyer wins)
     public function resolveComplaint(User $admin, Complaint $complaint, string $note): Complaint
     {
         if (!$admin->isAdmin()) {
@@ -150,11 +153,15 @@ class ComplaintService
                 "Complaint resolved by Admin. Note: {$note}"
             );
 
+            if (method_exists($this->notificationService, 'notifyComplaintResolved')) {
+                $this->notificationService->notifyComplaintResolved($complaint);
+            }
+
             return $complaint;
         });
     }
 
-    // ponytail: admin rejects the complaint
+    // ponytail: admin rejects the complaint (Seller wins)
     public function rejectComplaint(User $admin, Complaint $complaint, string $note): Complaint
     {
         if (!$admin->isAdmin()) {
@@ -181,7 +188,19 @@ class ComplaintService
             $order = $complaint->order;
             if ($order && $order->order_status !== Order::STATUS_COMPLETED) {
                 $order->update(['order_status' => Order::STATUS_COMPLETED]);
-                
+                $order->loadMissing(['items', 'payment', 'seller']);
+
+                // Decrement listing stock
+                foreach ($order->items as $item) {
+                    $listing = \App\Models\WasteListing::where('id', $item->listing_id)->lockForUpdate()->first();
+                    if ($listing && $listing->quantity >= $item->quantity) {
+                        $listing->decrement('quantity', $item->quantity);
+                        if ($listing->quantity <= 0) {
+                            $listing->update(['availability_status' => \App\Models\WasteListing::AVAILABILITY_SOLD_OUT]);
+                        }
+                    }
+                }
+
                 // Credit seller wallet using WalletService (Only if not COD)
                 $paymentMethod = $order->payment ? $order->payment->payment_method : null;
                 if ($paymentMethod !== 'cash_on_delivery') {
@@ -201,6 +220,10 @@ class ComplaintService
                 $complaint->id,
                 "Complaint rejected by Admin. Note: {$note}"
             );
+
+            if (method_exists($this->notificationService, 'notifyComplaintRejected')) {
+                $this->notificationService->notifyComplaintRejected($complaint);
+            }
 
             return $complaint;
         });

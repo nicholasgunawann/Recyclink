@@ -43,31 +43,42 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isBuyer(): bool  { return $this->hasRole('buyer'); }
     public function isAdmin(): bool  { return $this->hasRole('admin'); }
 
-    // ponytail: buyer summary — one combined query to cut DB round trips
+    // ponytail: seller summary cached via Redis
     public function getCachedSellerSummary(): array
     {
-        $row = DB::selectOne('
-            SELECT
-                (SELECT COUNT(*) FROM waste_listings WHERE seller_id = ? AND deleted_at IS NULL) as listings_count,
-                (SELECT COUNT(*) FROM orders WHERE seller_id = ? AND deleted_at IS NULL) as orders_count
-        ', [$this->id, $this->id]);
-        return [
-            'listings_count' => (int) $row->listings_count,
-            'orders_count'   => (int) $row->orders_count,
-        ];
+        return Cache::remember("seller_summary_{$this->id}", 300, function () {
+            $row = DB::selectOne('
+                SELECT
+                    (SELECT COUNT(*) FROM waste_listings WHERE seller_id = ? AND deleted_at IS NULL) as listings_count,
+                    (SELECT COUNT(*) FROM orders WHERE seller_id = ? AND deleted_at IS NULL) as orders_count,
+                    (SELECT COUNT(*) FROM orders WHERE seller_id = ? AND order_status = "completed" AND deleted_at IS NULL) as completed_orders_count
+            ', [$this->id, $this->id, $this->id]);
+            return [
+                'listings_count'         => (int) $row->listings_count,
+                'orders_count'           => (int) $row->orders_count,
+                'completed_orders_count' => (int) $row->completed_orders_count,
+            ];
+        });
     }
 
+    // ponytail: buyer summary cached via Redis
     public function getCachedBuyerSummary(): array
     {
-        $row = DB::selectOne('
-            SELECT
-                (SELECT COUNT(*) FROM orders WHERE buyer_id = ? AND deleted_at IS NULL) as orders_count,
-                (SELECT COUNT(*) FROM favorite_listings WHERE buyer_id = ?) as favorites_count
-        ', [$this->id, $this->id]);
-        return [
-            'orders_count'    => (int) $row->orders_count,
-            'favorites_count' => (int) $row->favorites_count,
-        ];
+        return Cache::remember("buyer_summary_{$this->id}", 300, function () {
+            $row = DB::selectOne('
+                SELECT
+                    (SELECT COUNT(*) FROM orders WHERE buyer_id = ? AND deleted_at IS NULL) as orders_count,
+                    (SELECT COUNT(*) FROM orders WHERE buyer_id = ? AND order_status IN ("pending", "waiting_payment", "paid", "processing") AND deleted_at IS NULL) as processing_orders_count,
+                    (SELECT COUNT(*) FROM orders WHERE buyer_id = ? AND order_status = "completed" AND deleted_at IS NULL) as completed_orders_count,
+                    (SELECT COUNT(*) FROM favorite_listings WHERE buyer_id = ?) as favorites_count
+            ', [$this->id, $this->id, $this->id, $this->id]);
+            return [
+                'orders_count'            => (int) $row->orders_count,
+                'processing_orders_count' => (int) $row->processing_orders_count,
+                'completed_orders_count'  => (int) $row->completed_orders_count,
+                'favorites_count'         => (int) $row->favorites_count,
+            ];
+        });
     }
 
     // ── Relationships ──────────────────────────────────────────────────────────

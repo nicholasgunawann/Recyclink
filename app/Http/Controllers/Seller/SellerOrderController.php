@@ -29,7 +29,7 @@ class SellerOrderController extends Controller implements HasMiddleware
     // ponytail: view received orders with eager loading
     public function index()
     {
-        $orders = auth()->user()->sellerOrders()->with(['buyer', 'payment', 'items.listing'])->latest()->paginate(15);
+        $orders = auth()->user()->sellerOrders()->with(['buyer.buyerProfile', 'payment', 'items.listing.primaryImage'])->latest()->paginate(15);
         return view('seller.orders.index', compact('orders'));
     }
 

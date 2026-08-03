@@ -14,7 +14,7 @@ class DemoListingSeeder extends Seeder
     private array $listings = [
         [
             'title'           => 'Limbah Kardus Bekas Grade A - Ready Stock Banyak',
-            'category_name'   => 'Kardus & Karton',
+            'category_name'   => 'Kertas (Kardus, kertas)',
             'price_per_unit'  => 1200, 'unit' => 'kg', 'min_order' => 50, 'quantity' => 5000,
             'waste_condition' => 'used', 'city' => 'Jakarta', 'province' => 'DKI Jakarta',
             'address'         => 'Jl. Industri Raya No. 45, Kawasan Industri Pulogadung',
@@ -22,7 +22,7 @@ class DemoListingSeeder extends Seeder
         ],
         [
             'title'           => 'Plastik PET Botol Bening - Bersih & Kering',
-            'category_name'   => 'Plastik PET (Botol)',
+            'category_name'   => 'Plastik',
             'price_per_unit'  => 2500, 'unit' => 'kg', 'min_order' => 100, 'quantity' => 3000,
             'waste_condition' => 'scrap', 'city' => 'Surabaya', 'province' => 'Jawa Timur',
             'address'         => 'Jl. Raya Kali Rungkut No. 10, Surabaya',
@@ -30,7 +30,7 @@ class DemoListingSeeder extends Seeder
         ],
         [
             'title'           => 'Besi Tua Campuran - Ton Timbang di Tempat',
-            'category_name'   => 'Besi & Baja',
+            'category_name'   => 'Logam',
             'price_per_unit'  => 3800, 'unit' => 'kg', 'min_order' => 500, 'quantity' => 20000,
             'waste_condition' => 'scrap', 'city' => 'Bandung', 'province' => 'Jawa Barat',
             'address'         => 'Jl. Soekarno Hatta No. 123, Bandung',
@@ -38,7 +38,7 @@ class DemoListingSeeder extends Seeder
         ],
         [
             'title'           => 'Limbah Tembaga Kabel Stripping - Kadar Tinggi',
-            'category_name'   => 'Tembaga',
+            'category_name'   => 'Logam',
             'price_per_unit'  => 72000, 'unit' => 'kg', 'min_order' => 10, 'quantity' => 500,
             'waste_condition' => 'scrap', 'city' => 'Semarang', 'province' => 'Jawa Tengah',
             'address'         => 'Jl. Raya Kaligawe No. 45, Semarang',
@@ -46,7 +46,7 @@ class DemoListingSeeder extends Seeder
         ],
         [
             'title'           => 'Serbuk Kayu Halus - Biomassa Energi',
-            'category_name'   => 'Serbuk & Serutan Kayu',
+            'category_name'   => 'Lainnya (Kayu, keramik, kaca dll)',
             'price_per_unit'  => 400, 'unit' => 'kg', 'min_order' => 1000, 'quantity' => 50000,
             'waste_condition' => 'used', 'city' => 'Medan', 'province' => 'Sumatera Utara',
             'address'         => 'Jl. Gatot Subroto No. 200, Medan',
@@ -54,7 +54,7 @@ class DemoListingSeeder extends Seeder
         ],
         [
             'title'           => 'Minyak Jelantah (UCO) - Food Grade',
-            'category_name'   => 'Minyak Jelantah',
+            'category_name'   => 'Cairan/Minyak',
             'price_per_unit'  => 8500, 'unit' => 'liter', 'min_order' => 200, 'quantity' => 10000,
             'waste_condition' => 'used', 'city' => 'Jakarta', 'province' => 'DKI Jakarta',
             'address'         => 'Jl. Pluit Selatan No. 8, Jakarta Utara',
@@ -62,7 +62,7 @@ class DemoListingSeeder extends Seeder
         ],
         [
             'title'           => 'Ban Bekas Truk & Alat Berat',
-            'category_name'   => 'Ban Bekas',
+            'category_name'   => 'Lainnya (Kayu, keramik, kaca dll)',
             'price_per_unit'  => 35000, 'unit' => 'pcs', 'min_order' => 20, 'quantity' => 500,
             'waste_condition' => 'scrap', 'city' => 'Bekasi', 'province' => 'Jawa Barat',
             'address'         => 'Kawasan Industri MM2100, Bekasi',
@@ -70,7 +70,7 @@ class DemoListingSeeder extends Seeder
         ],
         [
             'title'           => 'Aluminium Kaleng Cacah - Siap Lebur',
-            'category_name'   => 'Aluminium',
+            'category_name'   => 'Logam',
             'price_per_unit'  => 14500, 'unit' => 'kg', 'min_order' => 200, 'quantity' => 8000,
             'waste_condition' => 'scrap', 'city' => 'Tangerang', 'province' => 'Banten',
             'address'         => 'Jl. Raya Serang KM 12, Tangerang',

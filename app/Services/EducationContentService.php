@@ -12,7 +12,11 @@ class EducationContentService
     {
         $data['slug'] = Str::slug($data['title']);
         $data['admin_id'] = auth()->id();
-        $data['status'] = $data['status'] ?? 'draft';
+        $data['status'] = $data['status'] ?? 'published';
+
+        if ($data['status'] === 'published' && empty($data['published_at'])) {
+            $data['published_at'] = now();
+        }
 
         if (request()->hasFile('thumbnail')) {
             $data['thumbnail_url'] = request()->file('thumbnail')->store('education', 'public');
@@ -26,6 +30,10 @@ class EducationContentService
     {
         if (isset($data['title'])) {
             $data['slug'] = Str::slug($data['title']);
+        }
+
+        if (isset($data['status']) && $data['status'] === 'published' && empty($content->published_at) && empty($data['published_at'])) {
+            $data['published_at'] = now();
         }
 
         if (request()->hasFile('thumbnail')) {

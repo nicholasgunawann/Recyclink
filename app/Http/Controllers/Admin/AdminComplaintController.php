@@ -34,11 +34,35 @@ class AdminComplaintController extends Controller implements HasMiddleware
         return view('admin.complaints.index', compact('complaints'));
     }
 
-    // ponytail: view complaint details
+    // ponytail: view complaint details with chat messages
     public function show(Complaint $complaint)
     {
-        $complaint->load(['complainant', 'respondent', 'order']);
+        $complaint->load(['complainant', 'respondent', 'order', 'messages.user']);
         return view('admin.complaints.show', compact('complaint'));
+    }
+
+    // ponytail: admin posts message in dispute discussion
+    public function storeMessage(\Illuminate\Http\Request $request, Complaint $complaint)
+    {
+        $this->authorize('process', $complaint);
+
+        $request->validate([
+            'message' => 'required|string',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $attachmentUrl = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentUrl = $request->file('attachment')->store('complaint_messages', 'public');
+        }
+
+        $complaint->messages()->create([
+            'user_id' => auth()->id(),
+            'message' => $request->input('message'),
+            'attachment_url' => $attachmentUrl,
+        ]);
+
+        return redirect()->back()->with('success', 'Pesan Admin berhasil dikirim.');
     }
 
     // ponytail: mark complaint as being processed
@@ -89,7 +113,19 @@ class AdminComplaintController extends Controller implements HasMiddleware
         $order = $complaint->order;
         if ($order && $order->order_status !== \App\Models\Order::STATUS_COMPLETED) {
             $order->update(['order_status' => \App\Models\Order::STATUS_COMPLETED]);
-            
+            $order->loadMissing(['items', 'payment', 'seller']);
+
+            // Decrement listing stock
+            foreach ($order->items as $item) {
+                $listing = \App\Models\WasteListing::where('id', $item->listing_id)->lockForUpdate()->first();
+                if ($listing && $listing->quantity >= $item->quantity) {
+                    $listing->decrement('quantity', $item->quantity);
+                    if ($listing->quantity <= 0) {
+                        $listing->update(['availability_status' => \App\Models\WasteListing::AVAILABILITY_SOLD_OUT]);
+                    }
+                }
+            }
+
             // Credit seller wallet
             $paymentMethod = $order->payment ? $order->payment->payment_method : null;
             if ($paymentMethod !== 'cash_on_delivery') {

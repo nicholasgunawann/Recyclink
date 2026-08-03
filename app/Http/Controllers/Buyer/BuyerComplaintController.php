@@ -15,7 +15,10 @@ class BuyerComplaintController extends Controller
         if ($order->buyer_id !== auth()->id()) {
             abort(403);
         }
-        if (!in_array($order->order_status, [Order::STATUS_PAID, Order::STATUS_PROCESSING])) {
+        if ($existing = $order->complaints()->first()) {
+            return redirect()->route('buyer.complaints.show', $existing->id)->with('info', 'Komplain untuk pesanan ini telah dibuat.');
+        }
+        if (!in_array($order->order_status, [Order::STATUS_PAID, Order::STATUS_PROCESSING, Order::STATUS_COMPLETED])) {
             return redirect()->back()->with('error', 'Pesanan ini tidak dapat diajukan komplain.');
         }
 
@@ -28,7 +31,11 @@ class BuyerComplaintController extends Controller
             abort(403);
         }
 
-        if (!in_array($order->order_status, [Order::STATUS_PAID, Order::STATUS_PROCESSING])) {
+        if ($existing = $order->complaints()->first()) {
+            return redirect()->route('buyer.complaints.show', $existing->id)->with('info', 'Komplain untuk pesanan ini telah dibuat.');
+        }
+
+        if (!in_array($order->order_status, [Order::STATUS_PAID, Order::STATUS_PROCESSING, Order::STATUS_COMPLETED])) {
             return redirect()->back()->with('error', 'Pesanan ini tidak dapat diajukan komplain.');
         }
 

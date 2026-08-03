@@ -42,7 +42,8 @@
                             'open' => ['bg' => 'bg-amber-50 text-amber-700 border-amber-200', 'label' => 'Terbuka'],
                             'under_review' => ['bg' => 'bg-indigo-50 text-indigo-700 border-indigo-200', 'label' => 'Ditinjau'],
                             'resolved' => ['bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'label' => 'Selesai'],
-                            'rejected' => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200', 'label' => 'Ditolak']
+                            'rejected' => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200', 'label' => 'Ditolak'],
+                            'appealed' => ['bg' => 'bg-purple-50 text-purple-700 border-purple-200', 'label' => 'Banding']
                         ];
                     @endphp
                     @foreach($complaints as $c)

@@ -1,41 +1,43 @@
-{{-- Global Page Loader for fast UX --}}
-<div id="universal-page-loader" class="fixed inset-0 bg-white/70 backdrop-blur-sm z-[999999] hidden flex-col items-center justify-center opacity-0" style="transition: opacity 0.1s ease;">
-    <div class="relative w-16 h-16 flex items-center justify-center">
-        <div class="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
-        <div class="absolute inset-0 border-4 border-brand rounded-full border-t-transparent animate-spin"></div>
-        <svg class="w-6 h-6 text-brand absolute" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-    </div>
-    <p class="mt-4 text-sm font-bold text-gray-500 animate-pulse">Memuat data...</p>
-</div>
+{{-- Global Top Progress Bar (Sleek non-blocking UX) --}}
+<div id="universal-top-progress" class="fixed top-0 left-0 right-0 h-0.5 bg-brand z-[999999] pointer-events-none transition-all duration-300 opacity-0 w-0 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const loader = document.getElementById('universal-page-loader');
-        
-        function showLoader() {
-            if (!loader) return;
-            loader.classList.remove('hidden');
-            setTimeout(() => loader.classList.add('flex', 'opacity-100'), 10);
-            // Safety: always hide after 8 seconds to prevent permanent spinner
-            setTimeout(hideLoader, 8000);
+    (function() {
+        let progressTimer;
+        function getProgressBar() {
+            return document.getElementById('universal-top-progress');
         }
 
-        function hideLoader() {
-            if (!loader) return;
-            loader.classList.remove('flex', 'opacity-100');
-            loader.classList.add('hidden', 'opacity-0');
+        function startProgress() {
+            const bar = getProgressBar();
+            if (!bar) return;
+            clearTimeout(progressTimer);
+            bar.style.transition = 'width 0.3s ease, opacity 0.1s ease';
+            bar.style.opacity = '1';
+            bar.style.width = '30%';
+
+            progressTimer = setTimeout(() => {
+                bar.style.width = '70%';
+            }, 200);
         }
 
-        // Turbo lifecycle events
-        document.addEventListener("turbo:visit", showLoader);
-        document.addEventListener("turbo:submit-start", showLoader);
-        document.addEventListener("turbo:load", hideLoader);
-        document.addEventListener("turbo:frame-load", hideLoader);
-        
-        // Handle browser back/forward cache and normal page loads
-        window.addEventListener('pageshow', hideLoader);
-        
-        // Hide on initial load in case leftover from previous page
-        hideLoader();
-    });
+        function completeProgress() {
+            const bar = getProgressBar();
+            if (!bar) return;
+            clearTimeout(progressTimer);
+            bar.style.width = '100%';
+            progressTimer = setTimeout(() => {
+                bar.style.opacity = '0';
+                setTimeout(() => {
+                    bar.style.width = '0%';
+                }, 300);
+            }, 150);
+        }
+
+        document.addEventListener("turbo:visit", startProgress);
+        document.addEventListener("turbo:submit-start", startProgress);
+        document.addEventListener("turbo:load", completeProgress);
+        document.addEventListener("turbo:frame-load", completeProgress);
+        window.addEventListener('pageshow', completeProgress);
+    })();
 </script>

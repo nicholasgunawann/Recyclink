@@ -316,6 +316,7 @@ Route::group([
     // Complaint Management
     Route::get('/complaints', [AdminComplaintController::class, 'index'])->name('complaints.index');
     Route::get('/complaints/{complaint}', [AdminComplaintController::class, 'show'])->name('complaints.show');
+    Route::post('/complaints/{complaint}/messages', [AdminComplaintController::class, 'storeMessage'])->name('complaints.messages.store');
     Route::patch('/complaints/{complaint}/process', [AdminComplaintController::class, 'process'])->name('complaints.process');
     Route::patch('/complaints/{complaint}/resolve', [AdminComplaintController::class, 'resolve'])->name('complaints.resolve');
     Route::patch('/complaints/{complaint}/reject', [AdminComplaintController::class, 'reject'])->name('complaints.reject');

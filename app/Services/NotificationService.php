@@ -157,6 +157,54 @@ class NotificationService
         }
     }
 
+    // ponytail: notify buyer and seller when complaint is resolved (buyer wins)
+    public function notifyComplaintResolved(Complaint $complaint): void
+    {
+        $complaint->loadMissing(['complainant', 'respondent', 'order']);
+        if ($complaint->complainant) {
+            $this->sendToUser(
+                $complaint->complainant,
+                "Komplain Disetujui Admin",
+                "Komplain #{$complaint->complaint_number} Anda telah disetujui oleh Admin. Pesanan dibatalkan & dana diproses.",
+                "complaint",
+                $complaint->id
+            );
+        }
+        if ($complaint->respondent) {
+            $this->sendToUser(
+                $complaint->respondent,
+                "Keputusan Komplain Pesanan",
+                "Komplain #{$complaint->complaint_number} telah diselesaikan oleh Admin. Anda dapat mengajukan banding jika keberatan.",
+                "complaint",
+                $complaint->id
+            );
+        }
+    }
+
+    // ponytail: notify buyer and seller when complaint is rejected (seller wins)
+    public function notifyComplaintRejected(Complaint $complaint): void
+    {
+        $complaint->loadMissing(['complainant', 'respondent', 'order']);
+        if ($complaint->complainant) {
+            $this->sendToUser(
+                $complaint->complainant,
+                "Komplain Ditolak Admin",
+                "Komplain #{$complaint->complaint_number} Anda telah ditolak oleh Admin. Pesanan diselesaikan.",
+                "complaint",
+                $complaint->id
+            );
+        }
+        if ($complaint->respondent) {
+            $this->sendToUser(
+                $complaint->respondent,
+                "Komplain Ditolak — Penjual Menang",
+                "Komplain #{$complaint->complaint_number} ditolak Admin. Dana pesanan diteruskan ke dompet Anda.",
+                "complaint",
+                $complaint->id
+            );
+        }
+    }
+
     // ponytail: notify seller when a withdrawal is requested
     public function notifyWithdrawalRequested(Withdrawal $withdrawal): void
     {

@@ -72,15 +72,53 @@
                     Lihat Semua
                 </a>
             </div>
-            <div class="p-6 flex-1 flex flex-col justify-center bg-gray-50/50">
-                <!-- Placeholder if no data -->
-                <div class="flex flex-col items-center justify-center text-center py-12">
-                    <div class="w-20 h-20 bg-white rounded-full shadow-sm flex items-center justify-center mb-5">
-                        <i data-lucide="inbox" class="w-10 h-10 text-gray-300"></i>
+            <div class="p-6 flex-1 flex flex-col justify-start bg-gray-50/50">
+                @if(($recentOrders ?? collect())->isEmpty())
+                    <div class="flex flex-col items-center justify-center text-center py-12 my-auto">
+                        <div class="w-20 h-20 bg-white rounded-full shadow-sm flex items-center justify-center mb-5">
+                            <i data-lucide="inbox" class="w-10 h-10 text-gray-300"></i>
+                        </div>
+                        <h5 class="text-lg text-gray-900 font-bold mb-2">Belum Ada Transaksi Terbaru</h5>
+                        <p class="text-gray-500 max-w-sm">Aktivitas transaksi jual beli limbah terbaru akan muncul di bagian ini untuk memudahkan pemantauan.</p>
                     </div>
-                    <h5 class="text-lg text-gray-900 font-bold mb-2">Belum Ada Transaksi Terbaru</h5>
-                    <p class="text-gray-500 max-w-sm">Aktivitas transaksi jual beli limbah terbaru akan muncul di bagian ini untuk memudahkan pemantauan.</p>
-                </div>
+                @else
+                    <div class="divide-y divide-gray-200/60">
+                        @php
+                            // ponytail: status badge styling map
+                            $statusConfig = [
+                                'pending' => ['bg' => 'bg-amber-50 text-amber-700 border-amber-200', 'label' => 'Menunggu Konfirmasi'],
+                                'waiting_payment' => ['bg' => 'bg-blue-50 text-blue-700 border-blue-200', 'label' => 'Menunggu Pembayaran'],
+                                'paid' => ['bg' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'label' => 'Sudah Dibayar'],
+                                'processing' => ['bg' => 'bg-indigo-50 text-indigo-700 border-indigo-200', 'label' => 'Diproses'],
+                                'completed' => ['bg' => 'bg-gray-100 text-gray-700 border-gray-200', 'label' => 'Selesai'],
+                                'rejected' => ['bg' => 'bg-rose-50 text-rose-700 border-rose-200', 'label' => 'Ditolak'],
+                                'cancelled' => ['bg' => 'bg-red-50 text-red-700 border-red-200', 'label' => 'Dibatalkan']
+                            ];
+                        @endphp
+                        @foreach($recentOrders as $order)
+                            @php
+                                $st = $statusConfig[$order->order_status] ?? ['bg' => 'bg-gray-50 text-gray-700 border-gray-200', 'label' => strtoupper($order->order_status)];
+                            @endphp
+                            <div class="py-4 flex items-center justify-between gap-4">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-mono font-bold text-sm text-gray-900">{{ $order->order_code }}</span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $st['bg'] }}">
+                                            {{ $st['label'] }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-gray-600 truncate">
+                                        Pembeli: <span class="font-semibold text-gray-800">{{ $order->buyer->name ?? '-' }}</span> | Penjual: <span class="font-semibold text-gray-800">{{ $order->seller->name ?? '-' }}</span>
+                                    </p>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <div class="font-bold text-sm text-brand">Rp {{ number_format((float)$order->total_amount, 0, ',', '.') }}</div>
+                                    <a href="{{ route('admin.transactions.show', $order->id) }}" class="text-xs text-brand hover:underline font-semibold mt-0.5 inline-block">Lihat Detail →</a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -93,14 +131,48 @@
                 <h3 class="font-bold text-lg text-gray-900">Tindakan Diperlukan</h3>
             </div>
             
-            <div class="p-6 flex-1 flex flex-col justify-center bg-gray-50/50">
-                <div class="flex flex-col items-center justify-center text-center py-10">
-                    <div class="w-20 h-20 bg-white rounded-full shadow-sm flex items-center justify-center mb-5 relative">
-                        <i data-lucide="check-circle-2" class="w-10 h-10 text-emerald-400"></i>
+            <div class="p-6 flex-1 flex flex-col justify-start bg-gray-50/50">
+                @if(($pendingVerificationsCount ?? 0) === 0 && ($pendingComplaintsCount ?? 0) === 0)
+                    <div class="flex flex-col items-center justify-center text-center py-10 my-auto">
+                        <div class="w-20 h-20 bg-white rounded-full shadow-sm flex items-center justify-center mb-5 relative">
+                            <i data-lucide="check-circle-2" class="w-10 h-10 text-emerald-400"></i>
+                        </div>
+                        <h5 class="text-lg text-gray-900 font-bold mb-2">Semua Bersih!</h5>
+                        <p class="text-gray-500">Tidak ada limbah yang membutuhkan verifikasi atau komplain tertunda saat ini.</p>
                     </div>
-                    <h5 class="text-lg text-gray-900 font-bold mb-2">Semua Bersih!</h5>
-                    <p class="text-gray-500">Tidak ada limbah yang membutuhkan verifikasi atau komplain tertunda saat ini.</p>
-                </div>
+                @else
+                    <div class="space-y-4">
+                        @if(($pendingVerificationsCount ?? 0) > 0)
+                            <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="file-text" class="w-5 h-5 text-amber-600"></i>
+                                    <div>
+                                        <h6 class="font-bold text-amber-900 text-sm">Verifikasi Limbah</h6>
+                                        <p class="text-xs text-amber-700">{{ $pendingVerificationsCount }} limbah menunggu persetujuan</p>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.listings.verification.index') }}" class="px-3 py-1.5 bg-amber-600 text-white font-bold text-xs rounded-lg hover:bg-amber-700 transition-colors">
+                                    Tinjau
+                                </a>
+                            </div>
+                        @endif
+
+                        @if(($pendingComplaintsCount ?? 0) > 0)
+                            <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-600"></i>
+                                    <div>
+                                        <h6 class="font-bold text-rose-900 text-sm">Komplain Pengguna</h6>
+                                        <p class="text-xs text-rose-700">{{ $pendingComplaintsCount }} komplain butuh tindakan</p>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.complaints.index') }}" class="px-3 py-1.5 bg-rose-600 text-white font-bold text-xs rounded-lg hover:bg-rose-700 transition-colors">
+                                    Tinjau
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </div>
         </div>
 
