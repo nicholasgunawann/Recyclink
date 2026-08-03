@@ -15,15 +15,18 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.3'
           extensions: mbstring, pdo_mysql, bcmath, ctype, xml, json, zip
+          tools: composer:v2
 
-      - name: Copy Env & Install Local Dependencies
-        run: |
-          copy('.env.example', '.env');
-          exec('composer install --no-interaction --no-progress --prefer-dist');
-          exec('php artisan key:generate');
-        shell: php {0}
+      - name: Copy Env
+        run: cp .env.example .env
+
+      - name: Install Dependencies
+        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --ignore-platform-reqs
+
+      - name: Generate Key
+        run: php artisan key:generate
 
       - name: Run Tests
         run: php artisan test
