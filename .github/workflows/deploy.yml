@@ -52,7 +52,7 @@ jobs:
             cd public_html
             /usr/bin/git fetch --depth=1 https://github.com/nicholasgunawann/Recyclink.git main
             /usr/bin/git checkout -f FETCH_HEAD
-            composer install --no-dev --optimize-autoloader
+            composer install --no-dev --optimize-autoloader --ignore-platform-reqs
             php artisan migrate --force
             php artisan db:seed --force
             php artisan config:cache
