@@ -53,9 +53,10 @@ jobs:
             rm -f index.html default.html default.php hosting.html
             /usr/bin/git fetch --depth=1 https://github.com/nicholasgunawann/Recyclink.git main
             /usr/bin/git checkout -f FETCH_HEAD
-            composer install --no-dev --optimize-autoloader
-            php artisan migrate --force || true
-            php artisan db:seed --force || true
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
+            PHP_BIN=$(which ea-php83 2>/dev/null || echo "/usr/local/bin/ea-php83")
+            $PHP_BIN /usr/local/bin/composer install --no-dev --optimize-autoloader 2>/dev/null || composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+            $PHP_BIN artisan migrate --force || true
+            $PHP_BIN artisan db:seed --force || true
+            $PHP_BIN artisan config:cache
+            $PHP_BIN artisan route:cache
+            $PHP_BIN artisan view:cache
