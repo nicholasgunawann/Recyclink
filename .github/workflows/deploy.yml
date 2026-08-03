@@ -28,6 +28,16 @@ jobs:
       - name: Generate Key
         run: php artisan key:generate
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Assets for Tests
+        run: |
+          npm install
+          npm run build
+
       - name: Run Tests
         run: php artisan test
 
