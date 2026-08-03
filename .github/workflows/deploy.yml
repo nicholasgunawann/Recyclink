@@ -51,12 +51,13 @@ jobs:
           script: |
             cd public_html
             rm -f index.html default.html default.php hosting.html
+            export PATH="/opt/cpanel/ea-php83/root/usr/bin:/usr/local/bin:/opt/alt/php83/usr/bin:$PATH"
             /usr/bin/git fetch --depth=1 https://github.com/nicholasgunawann/Recyclink.git main
-            /usr/bin/git checkout -f FETCH_HEAD
-            PHP_BIN=$(which ea-php83 2>/dev/null || echo "/usr/local/bin/ea-php83")
-            $PHP_BIN /usr/local/bin/composer install --no-dev --optimize-autoloader 2>/dev/null || composer install --no-dev --optimize-autoloader --ignore-platform-reqs
-            $PHP_BIN artisan migrate --force || true
-            $PHP_BIN artisan db:seed --force || true
-            $PHP_BIN artisan config:cache
-            $PHP_BIN artisan route:cache
-            $PHP_BIN artisan view:cache
+            /usr/bin/git reset --hard FETCH_HEAD
+            composer install --no-dev --optimize-autoloader --no-scripts
+            (ea-php83 artisan package:discover --ansi || php artisan package:discover --ansi) || true
+            (ea-php83 artisan migrate --force || php artisan migrate --force) || true
+            (ea-php83 artisan db:seed --force || php artisan db:seed --force) || true
+            (ea-php83 artisan config:cache || php artisan config:cache) || true
+            (ea-php83 artisan route:cache || php artisan route:cache) || true
+            (ea-php83 artisan view:cache || php artisan view:cache) || true
