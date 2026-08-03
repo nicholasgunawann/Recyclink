@@ -1,10 +1,16 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    Options -Indexes
 
-    # 1. Blokir akses publik ke folder .git rahasia (Keamanan)
+    # Blokir akses publik ke folder .git
     RedirectMatch 404 /\.git
 
-    # 2. Alihkan traffic domain langsung ke folder public Laravel
+    # Set default index ke public/index.php
+    DirectoryIndex public/index.php index.php
+
+    # Alihkan seluruh traffic ke folder public
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
+
+DirectoryIndex public/index.php index.php
