@@ -1,0 +1,47 @@
+# ponytail: complete CI/CD SSH deployment pipeline for DomaiNesia Nimbus
+name: Deploy to DomaiNesia Nimbus
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql, bcmath, ctype, xml, json, zip
+
+      - name: Copy Env & Install Local Dependencies
+        run: |
+          copy('.env.example', '.env');
+          exec('composer install --no-interaction --no-progress --prefer-dist');
+          exec('php artisan key:generate');
+        shell: php {0}
+
+      - name: Run Tests
+        run: php artisan test
+
+      - name: Deploy via SSH to DomaiNesia
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DOMAINESIA_HOST }}
+          username: ${{ secrets.DOMAINESIA_USER }}
+          password: ${{ secrets.DOMAINESIA_PASSWORD }}
+          port: ${{ secrets.DOMAINESIA_PORT || 22 }}
+          script: |
+            cd /home/${{ secrets.DOMAINESIA_USER }}/public_html
+            git pull origin main
+            composer install --no-dev --optimize-autoloader
+            php artisan migrate --force
+            php artisan db:seed --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            npm run build
