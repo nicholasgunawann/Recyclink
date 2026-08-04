@@ -36,13 +36,13 @@
                     {{-- Image: full-bleed dengan badge kategori overlay --}}
                     <div class="relative h-52 bg-gray-100 shrink-0 overflow-hidden">
                         <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                             src="{{ $listing->primaryImage ? $listing->primaryImage->url : '' }}"
+                             src="{{ $listing->primaryImage?->url ?? '' }}"
                              alt="{{ $listing->title }}"
                              onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center bg-gray-100\'><i data-lucide=\'image\' class=\'w-10 h-10 text-gray-300\'></i></div>'" />
 
                         {{-- Category badge overlay --}}
                         <span class="absolute top-3 left-3 bg-brand text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
-                            {{ $listing->category->category_name ?? 'Lainnya' }}
+                            {{ $listing->category?->category_name ?? 'Lainnya' }}
                         </span>
                     </div>
 
