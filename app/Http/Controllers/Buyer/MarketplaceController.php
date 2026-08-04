@@ -23,40 +23,6 @@ class MarketplaceController extends Controller
     public function index(Request $request)
     {
         if ($request->wantsJson() || $request->ajax()) {
-            $isDefaultProductPage1 = $request->input('tab', 'produk') === 'produk'
-                && (int)$request->input('page', 1) === 1
-                && !$request->filled('search') && !$request->filled('q')
-                && !$request->has('categories') && !$request->filled('lokasi')
-                && !$request->filled('volume_min') && !$request->filled('harga_min') && !$request->filled('harga_max')
-                && $request->input('sort', 'terbaru') === 'terbaru';
-
-            if ($isDefaultProductPage1) {
-                $payload = Cache::remember('marketplace_default_page_1', 60, function () {
-                    $query = WasteListing::verified()->available()->with(['category', 'primaryImage', 'seller.sellerProfile'])->latest();
-                    $paginator = $query->paginate(18);
-                    $items = collect($paginator->items())->map(function($l) {
-                        return [
-                            'id' => $l->id,
-                            'title' => $l->title,
-                            'categoryLabel' => $l->category->category_name ?? 'Limbah',
-                            'city' => $l->city,
-                            'price' => (float)$l->price_per_unit,
-                            'unit' => $l->unit,
-                            'stock' => (float)$l->quantity,
-                            'sellerName' => $l->seller && $l->seller->sellerProfile ? $l->seller->sellerProfile->business_name : ($l->seller->name ?? 'Penjual'),
-                            'image' => $l->primaryImage ? $l->primaryImage->url : ''
-                        ];
-                    });
-                    return [
-                        'data' => $items,
-                        'current_page' => $paginator->currentPage(),
-                        'last_page' => $paginator->lastPage(),
-                        'total' => $paginator->total(),
-                        'per_page' => $paginator->perPage(),
-                    ];
-                });
-                return response()->json($payload);
-            }
 
             if ($request->input('tab') === 'toko') {
                 $query = User::role('seller')->whereHas('sellerProfile')->with('sellerProfile');
