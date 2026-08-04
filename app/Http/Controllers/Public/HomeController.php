@@ -12,7 +12,7 @@ class HomeController extends Controller
     // ponytail: homepage view cached via Redis
     public function index()
     {
-        $data = Cache::remember('homepage_public_data', 1800, function () {
+        $data = Cache::remember('homepage_public_data_v2', 1800, function () {
             return [
                 'recentListings' => WasteListing::verified()
                     ->available()

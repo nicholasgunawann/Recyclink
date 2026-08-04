@@ -30,19 +30,32 @@
         {{-- Card Grid --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             @forelse($recentListings as $listing)
-                <a href="{{ url('/marketplace/'.$listing->id) }}"
+                @if(!is_object($listing) && !is_array($listing))
+                    @continue
+                @endif
+                @php
+                    $listingId = data_get($listing, 'id');
+                    $primaryImageUrl = data_get($listing, 'primaryImage.url');
+                    $title = data_get($listing, 'title', '');
+                    $categoryName = data_get($listing, 'category.category_name', 'Lainnya');
+                    $city = data_get($listing, 'city', '');
+                    $price = data_get($listing, 'price_per_unit', 0);
+                    $unit = data_get($listing, 'unit', '');
+                    $quantity = data_get($listing, 'quantity', 0);
+                @endphp
+                <a href="{{ url('/marketplace/'.$listingId) }}"
                    class="group bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col">
 
                     {{-- Image: full-bleed dengan badge kategori overlay --}}
                     <div class="relative h-52 bg-gray-100 shrink-0 overflow-hidden">
                         <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                             src="{{ $listing->primaryImage?->url ?? '' }}"
-                             alt="{{ $listing->title }}"
+                             src="{{ $primaryImageUrl }}"
+                             alt="{{ $title }}"
                              onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center bg-gray-100\'><i data-lucide=\'image\' class=\'w-10 h-10 text-gray-300\'></i></div>'" />
 
                         {{-- Category badge overlay --}}
                         <span class="absolute top-3 left-3 bg-brand text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
-                            {{ $listing->category?->category_name ?? 'Lainnya' }}
+                            {{ $categoryName }}
                         </span>
                     </div>
 
@@ -51,13 +64,13 @@
 
                         {{-- Title --}}
                         <h3 class="text-base font-bold text-gray-900 mb-1 leading-snug line-clamp-2 group-hover:text-brand transition-colors">
-                            {{ $listing->title }}
+                            {{ $title }}
                         </h3>
 
                         {{-- Location --}}
                         <div class="flex items-center gap-1.5 text-xs text-gray-400 mb-4">
                             <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
-                            <span class="truncate">{{ $listing->city }}</span>
+                            <span class="truncate">{{ $city }}</span>
                         </div>
 
                         <div class="grow"></div>
@@ -66,10 +79,10 @@
                         <div class="flex items-end justify-between mt-2">
                             <div>
                                 <p class="text-xl font-bold text-gray-900 leading-tight group-hover:text-brand transition-colors">
-                                    Rp {{ number_format((float)($listing->price_per_unit ?? 0), 0, ',', '.') }}<span class="text-xs font-normal text-gray-400"> / {{ $listing->unit }}</span>
+                                    Rp {{ number_format((float)$price, 0, ',', '.') }}<span class="text-xs font-normal text-gray-400"> / {{ $unit }}</span>
                                 </p>
                                 <p class="text-xs text-gray-400 mt-0.5">
-                                    Stok: {{ number_format((float)($listing->quantity ?? 0), 0, ',', '.') }} {{ $listing->unit }}
+                                    Stok: {{ number_format((float)$quantity, 0, ',', '.') }} {{ $unit }}
                                 </p>
                             </div>
                             <div class="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center group-hover:bg-brand transition-colors shrink-0">
