@@ -27,17 +27,15 @@ class AdminDashboardController extends Controller implements HasMiddleware
     // ponytail: load dashboard index view with summary stats cached via Redis
     public function index()
     {
-        $dashboardData = Cache::remember('admin_dashboard_summary', 300, function () {
-            return [
-                'stats' => $this->reportService->getAdminDashboardSummary(),
-                'recentOrders' => \App\Models\Order::with(['buyer', 'seller', 'items'])
-                    ->latest()
-                    ->take(5)
-                    ->get(),
-                'pendingVerificationsCount' => \App\Models\WasteListing::where('verification_status', 'pending')->count(),
-                'pendingComplaintsCount' => \App\Models\Complaint::where('status', 'pending')->count(),
-            ];
-        });
+        $dashboardData = [
+            'stats' => $this->reportService->getAdminDashboardSummary(),
+            'recentOrders' => \App\Models\Order::with(['buyer', 'seller', 'items'])
+                ->latest()
+                ->take(5)
+                ->get(),
+            'pendingVerificationsCount' => \App\Models\WasteListing::where('verification_status', 'pending')->count(),
+            'pendingComplaintsCount' => \App\Models\Complaint::where('status', 'pending')->count(),
+        ];
 
         return view('admin.dashboard', $dashboardData);
     }

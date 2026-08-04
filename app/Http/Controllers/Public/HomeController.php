@@ -12,21 +12,14 @@ class HomeController extends Controller
     // ponytail: homepage view cached via Redis
     public function index()
     {
-        $data = Cache::remember('homepage_public_data_v2', 1800, function () {
-            return [
-                'recentListings' => WasteListing::verified()
-                    ->available()
-                    ->with(['category', 'seller.sellerProfile', 'primaryImage'])
-                    ->latest()
-                    ->take(4)
-                    ->get(),
-                'featuredArticles' => EducationContent::published()->with('admin')->latest()->take(3)->get(),
-            ];
-        });
-
         return view('public.home', [
-            'recentListings' => $data['recentListings'],
-            'featuredArticles' => $data['featuredArticles'],
+            'recentListings' => WasteListing::verified()
+                ->available()
+                ->with(['category', 'seller.sellerProfile', 'primaryImage'])
+                ->latest()
+                ->take(4)
+                ->get(),
+            'featuredArticles' => EducationContent::published()->with('admin')->latest()->take(3)->get(),
         ]);
     }
 
