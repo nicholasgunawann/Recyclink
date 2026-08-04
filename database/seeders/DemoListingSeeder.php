@@ -102,7 +102,7 @@ class DemoListingSeeder extends Seeder
                 'slug'                => $slug,
                 'availability_status' => 'available',
                 'verification_status' => 'approved',
-                'view_count'          => fake()->numberBetween(10, 300),
+                'view_count'          => rand(10, 300),
                 'published_at'        => now()->subDays(rand(1, 60)),
             ]));
 
