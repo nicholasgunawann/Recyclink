@@ -11,6 +11,21 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
+        // ─── Admin Utama ──────────────────────────────────────────────────────
+        $adminUtama = User::updateOrCreate(
+            ['email' => 'admin@recyclink.com'],
+            [
+                'name'              => 'Admin Utama',
+                'password'          => Hash::make('password123'),
+                'phone_number'      => '081234567899',
+                'status'            => 'active',
+                'email_verified_at' => now(),
+            ]
+        );
+        $adminUtama->assignRole('admin');
+
+        $this->command->info('Admin Utama created: admin@recyclink.com');
+
         // ─── Super Admin ─────────────────────────────────────────────────────
         $superAdmin = User::updateOrCreate(
             ['email' => 'admin@recyclink.id'],

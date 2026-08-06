@@ -37,6 +37,7 @@ class AuthService
                 'password' => Hash::make($data['password']),
                 'phone_number' => $data['phone_number'] ?? null,
                 'status' => $status,
+                'email_verified_at' => now(),
             ]);
 
             $user->assignRole($data['role']);

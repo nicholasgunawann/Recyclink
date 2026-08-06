@@ -61,9 +61,9 @@ class LoginController extends Controller implements HasMiddleware
         if ($user->status === User::STATUS_INACTIVE || $user->status === User::STATUS_SUSPENDED) {
             return redirect()->route('verification.rejected');
         }
-        // If active but hasn't seen the success page yet
+        // Ensure active user is not trapped in pending verification
         if ($user->status === User::STATUS_ACTIVE && $user->email_verified_at === null) {
-            return redirect()->route('verification.pending');
+            $user->forceFill(['email_verified_at' => now()])->save();
         }
         if ($user->roles->count() === 0) {
             return redirect()->route('choose.role');

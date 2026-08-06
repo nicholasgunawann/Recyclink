@@ -14,32 +14,28 @@
     if (!window.Turbo) initSweetAlerts();
 
     function initSweetAlerts() {
-        const Toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-                toast.addEventListener('mouseenter', Swal.stopTimer)
-                toast.addEventListener('mouseleave', Swal.resumeTimer)
-            }
-        });
-
         const flashContainer = document.getElementById('flash-messages');
         if (!flashContainer) return;
 
+        const triggerToast = (msg, type) => {
+            if (typeof window.showToast === 'function') {
+                window.showToast(msg, type);
+            } else if (typeof Swal !== 'undefined') {
+                Swal.fire({ toast: true, position: 'top-end', icon: type, title: msg, showConfirmButton: false, timer: 3000 });
+            }
+        };
+
         const success = flashContainer.querySelector('.flash-success');
-        if (success) { Toast.fire({ icon: 'success', title: success.innerText }); success.remove(); }
+        if (success) { triggerToast(success.innerText, 'success'); success.remove(); }
 
         const error = flashContainer.querySelector('.flash-error');
-        if (error) { Toast.fire({ icon: 'error', title: error.innerText }); error.remove(); }
+        if (error) { triggerToast(error.innerText, 'error'); error.remove(); }
 
         const info = flashContainer.querySelector('.flash-info');
-        if (info) { Toast.fire({ icon: 'info', title: info.innerText }); info.remove(); }
+        if (info) { triggerToast(info.innerText, 'info'); info.remove(); }
 
         const validation = flashContainer.querySelector('.flash-validation');
-        if (validation) { Toast.fire({ icon: 'error', title: validation.innerText }); validation.remove(); }
+        if (validation) { triggerToast(validation.innerText, 'error'); validation.remove(); }
     }
 
     // Global Confirm Handler untuk elemen dengan data-confirm

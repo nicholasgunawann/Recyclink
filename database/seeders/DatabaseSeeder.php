@@ -32,9 +32,10 @@ class DatabaseSeeder extends Seeder
         $this->command->table(
             ['Role', 'Email', 'Password'],
             [
-                ['Admin',  'admin@recyclink.id',  'Admin@Recyclink2026!'],
-                ['Seller', 'seller@recyclink.id', 'Seller@Demo2026!'],
-                ['Buyer',  'buyer@recyclink.id',  'Buyer@Demo2026!'],
+                ['Admin Utama', 'admin@recyclink.com', 'password123'],
+                ['Super Admin', 'admin@recyclink.id',  'Admin@Recyclink2026!'],
+                ['Seller',      'seller@recyclink.id', 'Seller@Demo2026!'],
+                ['Buyer',       'buyer@recyclink.id',  'Buyer@Demo2026!'],
             ]
         );
     }
