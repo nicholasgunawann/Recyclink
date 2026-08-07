@@ -5,8 +5,9 @@
 
 @section('content')
     <div class="mb-8">
-        <h3 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-brand to-emerald-600 tracking-tight">Selamat datang kembali!</h3>
-        <p class="text-gray-600 mt-2 text-lg">Berikut adalah ringkasan aktivitas Recyclink secara keseluruhan.</p>
+        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">Dashboard Admin</h1>
+        <h3 class="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-brand to-emerald-600 tracking-tight">Selamat datang kembali!</h3>
+        <p class="text-gray-600 mt-1 text-base sm:text-lg">Berikut adalah ringkasan aktivitas Recyclink secara keseluruhan.</p>
     </div>
 
     <!-- Stat Cards -->

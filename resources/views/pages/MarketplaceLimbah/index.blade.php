@@ -134,16 +134,16 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         
         {{-- Navigation Tabs & Sorting --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-gray-200/80 pb-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             {{-- Tabs --}}
-            <nav class="flex gap-6" aria-label="Tabs">
-                <button id="tab-produk" class="tab-btn active-tab border-brand text-brand border-b-2 py-2 px-1 text-sm font-bold flex items-center gap-2 transition-all">
+            <nav class="flex items-center gap-2" aria-label="Tabs">
+                <button id="tab-produk" type="button" class="tab-btn active-tab bg-brand text-white font-bold px-5 py-2.5 rounded-full shadow-xs flex items-center gap-2 text-xs sm:text-sm transition-all cursor-pointer border-0">
                     <i data-lucide="package" class="w-4 h-4"></i>
-                    Produk Limbah
+                    <span>Produk Limbah</span>
                 </button>
-                <button id="tab-toko" class="tab-btn border-transparent text-gray-500 hover:text-gray-800 border-b-2 py-2 px-1 text-sm font-semibold flex items-center gap-2 transition-all">
+                <button id="tab-toko" type="button" class="tab-btn bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 font-medium px-5 py-2.5 rounded-full flex items-center gap-2 text-xs sm:text-sm transition-all cursor-pointer border-0">
                     <i data-lucide="store" class="w-4 h-4"></i>
-                    Pengepul / Toko
+                    <span>Pengepul / Toko</span>
                 </button>
             </nav>
 
@@ -445,24 +445,67 @@
         fetchData();
     }
 
+    function updateTabUI(tab) {
+        const isProd = tab === 'produk';
+        const activeClass = "tab-btn active-tab bg-brand text-white font-bold px-5 py-2.5 rounded-full shadow-xs flex items-center gap-2 text-xs sm:text-sm transition-all cursor-pointer border-0";
+        const inactiveClass = "tab-btn bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 font-medium px-5 py-2.5 rounded-full flex items-center gap-2 text-xs sm:text-sm transition-all cursor-pointer border-0";
+        
+        const btnProduk = document.getElementById('tab-produk');
+        const btnToko = document.getElementById('tab-toko');
+        if (btnProduk) btnProduk.className = isProd ? activeClass : inactiveClass;
+        if (btnToko) btnToko.className = !isProd ? activeClass : inactiveClass;
+        
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.placeholder = isProd 
+                ? "Cari limbah (misal: plastik, kertas, logam)..." 
+                : "Cari pengepul / toko (misal: UD Jaya, Semarang)...";
+        }
+
+        const cardGrid = document.getElementById('card-grid');
+        const tokoGrid = document.getElementById('toko-grid');
+        if (cardGrid) cardGrid.classList.toggle('hidden', !isProd);
+        if (tokoGrid) tokoGrid.classList.toggle('hidden', isProd);
+
+        ['filter-harga-section', 'filter-volume-section', 'filter-status-section'].forEach(id => {
+            const section = document.getElementById(id);
+            if (section) section.style.display = isProd ? 'block' : 'none';
+        });
+    }
+
     function initMarketplace() {
         const el = id => document.getElementById(id);
         if (!el('card-grid')) return;
 
-        const toggleTabs = (tab) => {
-            state.tab = tab;
-            const isProd = tab === 'produk';
-            el('tab-produk').className = isProd ? "tab-btn active-tab border-brand text-brand border-b-2 py-2 px-1 text-sm font-bold flex items-center gap-2 transition-all" : "tab-btn border-transparent text-gray-500 hover:text-gray-800 border-b-2 py-2 px-1 text-sm font-semibold flex items-center gap-2 transition-all";
-            el('tab-toko').className = !isProd ? "tab-btn active-tab border-brand text-brand border-b-2 py-2 px-1 text-sm font-bold flex items-center gap-2 transition-all" : "tab-btn border-transparent text-gray-500 hover:text-gray-800 border-b-2 py-2 px-1 text-sm font-semibold flex items-center gap-2 transition-all";
-            
-            // Toggle price & volume filters for toko tab
-            ['filter-harga-section', 'filter-volume-section', 'filter-status-section'].forEach(id => {
-                const section = el(id);
-                if (section) section.style.display = isProd ? 'block' : 'none';
-            });
+        // Parse initial URL query params to sync tab state on refresh or direct links
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialTab = urlParams.get('tab') === 'toko' ? 'toko' : 'produk';
+        state.tab = initialTab;
 
+        const initialSearch = urlParams.get('search') || urlParams.get('q') || '';
+        if (initialSearch) {
+            state.search = initialSearch;
+            const sInput = el('search-input');
+            if (sInput) {
+                sInput.value = initialSearch;
+                if (el('btn-search-clear')) el('btn-search-clear').classList.remove('hidden');
+            }
+        }
+
+        updateTabUI(initialTab);
+
+        const toggleTabs = (tab) => {
+            if (state.tab === tab) return;
+            state.tab = tab;
+            state.page = 1;
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('tab', tab);
+            window.history.replaceState({}, '', url.toString());
+
+            updateTabUI(tab);
             showSkeletons(tab);
-            refresh();
+            fetchData();
         };
 
         el('tab-produk')?.addEventListener('click', () => toggleTabs('produk'));

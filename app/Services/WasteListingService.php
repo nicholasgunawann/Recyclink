@@ -75,38 +75,55 @@ class WasteListingService
     public function uploadListingImages(WasteListing $listing, array $images): array
     {
         $uploaded = [];
-        
-        $cloudinaryUrl = env('CLOUDINARY_URL');
-        if ($cloudinaryUrl) {
-            $cloudinary = new \Cloudinary\Cloudinary($cloudinaryUrl);
-        } else {
-            // Fallback to separate config
-            $cloudinary = new \Cloudinary\Cloudinary([
-                'cloud' => [
-                    'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'YOUR_CLOUD_NAME_HERE'),
-                    'api_key'    => env('CLOUDINARY_API_KEY', '399941741518545'),
-                    'api_secret' => env('CLOUDINARY_API_SECRET', 'idnNflxVORnAaAbROS37ivbKibQ'),
-                ]
-            ]);
-        }
-
-        // ponytail: check once outside the loop instead of per-image
         $hasPrimary = $listing->images()->where('is_primary', true)->exists();
 
         foreach ($images as $index => $image) {
             if ($image instanceof \Illuminate\Http\UploadedFile) {
-                // Upload to Cloudinary
-                $response = $cloudinary->uploadApi()->upload($image->getRealPath(), [
-                    'folder' => 'recyclink/listings',
-                    'resource_type' => 'image',
-                ]);
+                $imageUrl = null;
+                $disk = 'public';
+
+                // Attempt Cloudinary upload if configured
+                $cloudinaryUrl = env('CLOUDINARY_URL');
+                $cloudName = env('CLOUDINARY_CLOUD_NAME');
+
+                if ($cloudinaryUrl || ($cloudName && $cloudName !== 'YOUR_CLOUD_NAME_HERE')) {
+                    try {
+                        $cloudinary = $cloudinaryUrl
+                            ? new \Cloudinary\Cloudinary($cloudinaryUrl)
+                            : new \Cloudinary\Cloudinary([
+                                'cloud' => [
+                                    'cloud_name' => $cloudName,
+                                    'api_key'    => env('CLOUDINARY_API_KEY'),
+                                    'api_secret' => env('CLOUDINARY_API_SECRET'),
+                                ]
+                            ]);
+
+                        $response = $cloudinary->uploadApi()->upload($image->getRealPath(), [
+                            'folder' => 'recyclink/listings',
+                            'resource_type' => 'image',
+                        ]);
+
+                        if (!empty($response['secure_url'])) {
+                            $imageUrl = $response['secure_url'];
+                            $disk = 'cloudinary';
+                        }
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning("Cloudinary upload failed, falling back to local storage: " . $e->getMessage());
+                    }
+                }
+
+                // Robust fallback to local disk storage if Cloudinary is not used or fails
+                if (!$imageUrl) {
+                    $imageUrl = $image->store('listings', 'public');
+                    $disk = 'public';
+                }
 
                 $isPrimary = $index === 0 && !$hasPrimary;
 
                 $uploaded[] = ListingImage::create([
                     'listing_id' => $listing->id,
-                    'image_url' => $response['secure_url'], // This contains absolute Cloudinary URL
-                    'disk' => 'cloudinary',
+                    'image_url' => $imageUrl,
+                    'disk' => $disk,
                     'is_primary' => $isPrimary,
                     'sort_order' => $index,
                 ]);

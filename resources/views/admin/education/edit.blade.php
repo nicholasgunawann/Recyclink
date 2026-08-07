@@ -86,11 +86,9 @@
                 {{-- Gambar (Thumbnail) --}}
                 <div>
                     <label for="thumbnail" class="block text-sm font-bold text-gray-700 mb-2">Gambar / Cover</label>
-                    @if($content->thumbnail_url)
-                        <div class="mb-3 w-40 h-28 rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
-                            <img src="{{ asset('storage/' . $content->thumbnail_url) }}" class="w-full h-full object-cover" alt="Current Thumbnail">
-                        </div>
-                    @endif
+                    <div class="mb-3 w-40 h-28 rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                        <img src="{{ $content->display_thumbnail_url }}" class="w-full h-full object-cover" alt="Current Thumbnail">
+                    </div>
                     <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 transition-all cursor-pointer">
                     @error('thumbnail') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                 </div>

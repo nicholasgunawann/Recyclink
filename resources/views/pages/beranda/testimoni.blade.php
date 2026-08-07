@@ -6,7 +6,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {{-- ── Testimoni ── --}}
-        <div class="text-center max-w-xl mx-auto mb-14">
+        <div class="text-center max-w-xl mx-auto mb-14 scroll-reveal">
             <span class="text-xs font-semibold text-brand uppercase tracking-widest">Testimoni</span>
             <h2 class="mt-2 text-3xl font-bold text-gray-900 tracking-tight">
                 Dipercaya Ribuan Pengguna
@@ -44,7 +44,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
             @foreach($testimonials as $t)
-                <div class="bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-md transition-shadow duration-300">
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-md transition-shadow duration-300 scroll-reveal">
                     {{-- Stars --}}
                     <div class="flex items-center gap-0.5 mb-4">
                         @for($i = 0; $i < $t['rating']; $i++)

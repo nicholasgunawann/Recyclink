@@ -23,31 +23,32 @@
     ];
 @endphp
 
-<section class="py-16 bg-gray-50 border-t border-gray-100 min-h-[70vh]">
+<section class="py-12 bg-gray-50/50 min-h-[60vh]">
     <div class="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         
         {{-- Section Header --}}
         <div class="mb-10">
-            <span class="inline-block bg-brand/10 text-brand px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
-                FAQ
+            <span class="inline-flex items-center gap-1.5 bg-brand/10 text-brand px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
+                <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> FAQ
             </span>
-            <h2 class="text-3xl font-extrabold text-gray-900 mb-4 tracking-tight">Pertanyaan yang Sering Diajukan</h2>
-            <p class="text-gray-500 max-w-xl mx-auto text-base">
-                Segala hal yang perlu Anda ketahui tentang penggunaan platform marketplace kami.
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Pertanyaan yang Sering Diajukan</h2>
+            <p class="text-gray-500 text-sm sm:text-base mt-1 max-w-xl mx-auto">
+                Segala hal yang perlu Anda ketahui tentang penggunaan platform marketplace limbah kami.
             </p>
         </div>
 
         {{-- Accordion --}}
-        {{-- ponytail: use native HTML details/summary elements to remove JavaScript toggle code --}}
-        <div class="space-y-4 text-left">
+        <div class="space-y-3.5 text-left">
             @foreach($faqs as $index => $faq)
-            <details name="faq-accordion" class="group bg-white border border-gray-200 open:border-brand/30 open:shadow-sm rounded-xl overflow-hidden transition-all duration-300" {{ $faq['active'] ? 'open' : '' }}>
-                <summary class="w-full px-6 py-5 flex items-center justify-between focus:outline-none list-none cursor-pointer">
-                    <span class="font-bold text-gray-900 text-left">{{ $faq['question'] }}</span>
-                    <i data-lucide="chevron-down" class="w-5 h-5 shrink-0 ml-4 text-gray-400 group-open:text-brand group-open:rotate-180 transition-transform duration-300"></i>
+            <details name="faq-accordion" class="group bg-white border border-gray-200/80 open:border-brand/40 open:shadow-md rounded-2xl overflow-hidden transition-all duration-300" {{ $faq['active'] ? 'open' : '' }}>
+                <summary class="w-full px-6 py-5 flex items-center justify-between focus:outline-none list-none cursor-pointer select-none">
+                    <span class="font-bold text-gray-900 text-sm sm:text-base text-left group-open:text-brand transition-colors">{{ $faq['question'] }}</span>
+                    <div class="w-8 h-8 rounded-full bg-gray-50 group-open:bg-brand/10 flex items-center justify-center shrink-0 ml-4 transition-colors">
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 group-open:text-brand group-open:rotate-180 transition-transform duration-300"></i>
+                    </div>
                 </summary>
-                <div class="px-6 pb-6">
-                    <p class="text-gray-500 text-sm leading-relaxed">
+                <div class="px-6 pb-6 pt-1 border-t border-gray-100/80">
+                    <p class="text-gray-600 text-sm leading-relaxed">
                         {{ $faq['answer'] }}
                     </p>
                 </div>
@@ -56,10 +57,13 @@
         </div>
         
         {{-- Contact Support --}}
-        <div class="mt-12">
-            <p class="text-sm text-gray-500 mb-4">Masih memiliki pertanyaan lain?</p>
-            <a href="#" class="inline-flex items-center justify-center bg-brand text-white px-6 py-3 rounded-lg font-semibold hover:bg-brand-hover transition-colors">
-                Hubungi Support 24/7
+        <div class="mt-12 p-8 bg-white border border-gray-200/80 rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-left">
+                <h4 class="font-bold text-gray-900 text-base">Masih Punya Pertanyaan Lain?</h4>
+                <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Tim pusat bantuan kami siap membantu operasional daur ulang Anda.</p>
+            </div>
+            <a href="mailto:support@recyclink.id" class="inline-flex items-center gap-2 bg-brand text-white px-5 py-3 rounded-xl font-bold text-sm hover:bg-brand-hover transition-all shadow-sm shrink-0 whitespace-nowrap">
+                <i data-lucide="message-circle" class="w-4 h-4"></i> Hubungi Support 24/7
             </a>
         </div>
         

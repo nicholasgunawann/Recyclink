@@ -6,12 +6,15 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="turbo-prefetch" content="true">
     <title>@yield('title', 'Admin Dashboard - Recyclink')</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('images/logo.png') }}">
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="dns-prefetch" href="//ui-avatars.com">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     @stack('styles')
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased font-sans flex h-screen overflow-hidden">
@@ -177,5 +180,6 @@
     @include('layouts.global-loader')
     @include('layouts.toast')
     @include('layouts.sweetalert')
+    @include('layouts.debounce-script')
 </body>
 </html>

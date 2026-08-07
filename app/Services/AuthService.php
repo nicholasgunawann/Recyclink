@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class AuthService
 {
-    // ponytail: authenticate user credentials
-    public function login(array $credentials): void
+    // ponytail: authenticate user credentials with optional remember me flag
+    public function login(array $credentials, bool $remember = false): void
     {
-        if (!Auth::attempt($credentials)) {
+        if (!Auth::attempt($credentials, $remember)) {
             throw new InvalidCredentialsException();
         }
         

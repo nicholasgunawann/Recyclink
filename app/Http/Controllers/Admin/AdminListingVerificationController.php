@@ -73,4 +73,15 @@ class AdminListingVerificationController extends Controller implements HasMiddle
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
+
+    // ponytail: activate/reactivate listing
+    public function activate(Request $request, WasteListing $wasteListing)
+    {
+        try {
+            $this->verificationService->activateListing(auth()->user(), $wasteListing, $request->input('reason'));
+            return redirect()->back()->with('success', 'Listing berhasil diaktifkan kembali.');
+        } catch (RecyclinkException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
 }

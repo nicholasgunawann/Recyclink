@@ -115,4 +115,33 @@ class ListingVerificationService
             return $listing;
         });
     }
+
+    // ponytail: activate/reactivate a listing (admin only)
+    public function activateListing(User $admin, WasteListing $listing, ?string $note = null): WasteListing
+    {
+        if (!$admin->isAdmin()) {
+            throw new UnauthorizedBusinessActionException("Only administrators can activate listings.");
+        }
+
+        return DB::transaction(function () use ($admin, $listing, $note) {
+            $listing->update([
+                'verification_status' => WasteListing::VERIFICATION_APPROVED,
+                'availability_status' => WasteListing::AVAILABILITY_AVAILABLE,
+                'admin_note' => $note ?: 'Reactivated by administrator.',
+            ]);
+
+            // Log activity
+            $this->activityLogService->log(
+                'listing.activate',
+                'waste_listings',
+                $listing->id,
+                "Listing reactivated by Admin. Note: {$note}"
+            );
+
+            // Send notification
+            $this->notificationService->notifyListingVerified($listing);
+
+            return $listing;
+        });
+    }
 }

@@ -33,11 +33,14 @@ class LoginController extends Controller implements HasMiddleware
         return view('auth.login');
     }
 
-    // ponytail: handle login attempt
+    // ponytail: handle login attempt with remember me support
     public function login(LoginRequest $request)
     {
         try {
-            $this->authService->login($request->validated());
+            $this->authService->login(
+                $request->only(['email', 'password']),
+                $request->boolean('remember')
+            );
             $user = auth()->user();
             return $this->redirectUser($user)->with('success', 'Selamat datang kembali, ' . ($user->name ?? 'Pengguna') . '! Berhasil masuk.');
         } catch (RecyclinkException $e) {

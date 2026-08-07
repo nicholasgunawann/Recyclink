@@ -60,7 +60,11 @@
                         <p class="text-xs text-gray-500">Stok: {{ $listing->quantity }} {{ $listing->unit }}</p>
                     </td>
                     <td class="px-6 py-4">
-                        @if($listing->verification_status === 'pending')
+                        @if($listing->availability_status === 'inactive')
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-100 text-rose-800">
+                                <i data-lucide="power" class="w-3.5 h-3.5"></i> Nonaktif
+                            </span>
+                        @elseif($listing->verification_status === 'pending')
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800">
                                 <i data-lucide="clock" class="w-3.5 h-3.5"></i> Menunggu
                             </span>

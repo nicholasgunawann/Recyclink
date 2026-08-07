@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="turbo-prefetch" content="true">
     <title>Daftar - Recyclink</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('images/logo.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.4/dist/turbo.es2017-umd.js"></script>
@@ -71,7 +73,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-3">Daftar Sebagai</label>
                     <div class="grid grid-cols-2 gap-4">
                         <label class="relative flex cursor-pointer rounded-xl border border-gray-200 bg-white p-4 shadow-sm focus:outline-none" id="label-role-buyer">
-                            <input type="radio" name="role" value="buyer" class="peer sr-only" required onchange="toggleRoleFields()">
+                            <input type="radio" name="role" value="buyer" class="peer sr-only" required onchange="toggleRoleFields()" {{ old('role', request('role')) === 'buyer' ? 'checked' : '' }}>
                             <div class="flex w-full items-center justify-between">
                                 <div class="flex items-center gap-3">
                                     <div class="rounded-full bg-brand/10 p-2 text-brand">
@@ -88,7 +90,7 @@
                         </label>
                         
                         <label class="relative flex cursor-pointer rounded-xl border border-gray-200 bg-white p-4 shadow-sm focus:outline-none" id="label-role-seller">
-                            <input type="radio" name="role" value="seller" class="peer sr-only" required onchange="toggleRoleFields()">
+                            <input type="radio" name="role" value="seller" class="peer sr-only" required onchange="toggleRoleFields()" {{ old('role', request('role')) === 'seller' ? 'checked' : '' }}>
                             <div class="flex w-full items-center justify-between">
                                 <div class="flex items-center gap-3">
                                     <div class="rounded-full bg-brand/10 p-2 text-brand">
@@ -160,7 +162,7 @@
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <i data-lucide="lock" class="w-5 h-5 text-gray-400"></i>
                             </div>
-                            <input type="password" name="password" id="password" required
+                            <input type="password" name="password" id="password" required minlength="8"
                                    class="block w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-brand focus:border-brand transition-colors outline-none"
                                    placeholder="Minimal 8 karakter">
                             <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors btn-toggle-password" data-target="password">
@@ -168,6 +170,7 @@
                                 <i data-lucide="eye-off" class="w-5 h-5 icon-eye-off hidden"></i>
                             </button>
                         </div>
+                        <p id="password-live-error" class="mt-1.5 text-sm text-red-500 hidden"></p>
                         @error('password') <p class="mt-1.5 text-sm text-red-500">{{ $message }}</p> @enderror
                     </div>
 
@@ -178,7 +181,7 @@
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <i data-lucide="lock" class="w-5 h-5 text-gray-400"></i>
                             </div>
-                            <input type="password" name="password_confirmation" id="password_confirmation" required
+                            <input type="password" name="password_confirmation" id="password_confirmation" required minlength="8"
                                    class="block w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:ring-2 focus:ring-brand focus:border-brand transition-colors outline-none"
                                    placeholder="Ulangi kata sandi">
                             <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors btn-toggle-password" data-target="password_confirmation">
@@ -186,6 +189,7 @@
                                 <i data-lucide="eye-off" class="w-5 h-5 icon-eye-off hidden"></i>
                             </button>
                         </div>
+                        <p id="password-confirm-live-error" class="mt-1.5 text-sm text-red-500 hidden"></p>
                     </div>
 
                     <!-- Specific Profile Data Group (Hidden initially) -->
@@ -324,6 +328,7 @@
     <script>
         document.addEventListener("turbo:load", function() {
             lucide.createIcons();
+            toggleRoleFields();
         });
         if (!window.Turbo) lucide.createIcons();
 
@@ -337,9 +342,11 @@
             
             // Elements
             const cCompany = document.getElementById('company_name');
-            const cIndustry = document.getElementById('industry_type');
+            const cIndustrySelect = document.getElementById('industry_type_select');
+            const cIndustryInput = document.getElementById('industry_type_input');
             const cBusiness = document.getElementById('business_name');
-            const cBType = document.getElementById('business_type');
+            const cBTypeSelect = document.getElementById('business_type_select');
+            const cBTypeInput = document.getElementById('business_type_input');
             const cAddress = document.getElementById('address');
             const cCity = document.getElementById('city');
             const cProv = document.getElementById('province');
@@ -347,37 +354,68 @@
             const submitBtn = document.getElementById('submitBtn');
 
             if (role) {
-                submitBtn.removeAttribute('disabled');
+                if (submitBtn) submitBtn.removeAttribute('disabled');
                 
-                profileSection.classList.remove('hidden');
+                if (profileSection) profileSection.classList.remove('hidden');
                 commonFields.forEach(el => el.classList.remove('hidden'));
-                cAddress.setAttribute('required', 'required');
-                cCity.setAttribute('required', 'required');
-                cProv.setAttribute('required', 'required');
-                cZip.setAttribute('required', 'required');
+                if (cAddress) cAddress.setAttribute('required', 'required');
+                if (cCity) cCity.setAttribute('required', 'required');
+                if (cProv) cProv.setAttribute('required', 'required');
+                if (cZip) cZip.setAttribute('required', 'required');
 
                 if (role === 'buyer') {
                     buyerFields.forEach(el => el.classList.remove('hidden'));
                     sellerFields.forEach(el => el.classList.add('hidden'));
                     
-                    cCompany.setAttribute('required', 'required');
-                    cIndustry.setAttribute('required', 'required');
-                    cBusiness.removeAttribute('required');
-                    cBType.removeAttribute('required');
+                    if (cCompany) cCompany.setAttribute('required', 'required');
+                    if (cIndustrySelect) cIndustrySelect.setAttribute('required', 'required');
+                    if (cBusiness) cBusiness.removeAttribute('required');
+                    if (cBTypeSelect) cBTypeSelect.removeAttribute('required');
+                    if (cBTypeInput) cBTypeInput.removeAttribute('required');
                 } else if (role === 'seller') {
                     sellerFields.forEach(el => el.classList.remove('hidden'));
                     buyerFields.forEach(el => el.classList.add('hidden'));
 
-                    cBusiness.setAttribute('required', 'required');
-                    cBType.setAttribute('required', 'required');
-                    cCompany.removeAttribute('required');
-                    cIndustry.removeAttribute('required');
+                    if (cBusiness) cBusiness.setAttribute('required', 'required');
+                    if (cBTypeSelect) cBTypeSelect.setAttribute('required', 'required');
+                    if (cCompany) cCompany.removeAttribute('required');
+                    if (cIndustrySelect) cIndustrySelect.removeAttribute('required');
+                    if (cIndustryInput) cIndustryInput.removeAttribute('required');
                 }
             }
         }
         
         // Run on load in case of old input
         toggleRoleFields();
+
+        // Realtime Password Validation
+        const passInput = document.getElementById('password');
+        const passConfirmInput = document.getElementById('password_confirmation');
+        const passErrorEl = document.getElementById('password-live-error');
+        const passConfirmErrorEl = document.getElementById('password-confirm-live-error');
+
+        function validatePasswords() {
+            if (passInput && passErrorEl) {
+                if (passInput.value.length > 0 && passInput.value.length < 8) {
+                    passErrorEl.textContent = 'Kata sandi minimal harus 8 karakter.';
+                    passErrorEl.classList.remove('hidden');
+                } else {
+                    passErrorEl.classList.add('hidden');
+                }
+            }
+
+            if (passConfirmInput && passConfirmErrorEl && passInput) {
+                if (passConfirmInput.value.length > 0 && passConfirmInput.value !== passInput.value) {
+                    passConfirmErrorEl.textContent = 'Konfirmasi kata sandi tidak cocok.';
+                    passConfirmErrorEl.classList.remove('hidden');
+                } else {
+                    passConfirmErrorEl.classList.add('hidden');
+                }
+            }
+        }
+
+        passInput?.addEventListener('input', validatePasswords);
+        passConfirmInput?.addEventListener('input', validatePasswords);
 
         // Password visibility toggle
         document.querySelectorAll('.btn-toggle-password').forEach(button => {

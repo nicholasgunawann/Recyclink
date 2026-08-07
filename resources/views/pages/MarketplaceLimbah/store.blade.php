@@ -4,7 +4,25 @@
 <div class="bg-gray-50 min-h-screen pb-20">
     
     {{-- Store Page Container --}}
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        {{-- Breadcrumb & Back Navigation --}}
+        <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+            <a href="{{ route('marketplace.index') }}" id="btn-back" class="inline-flex items-center text-xs sm:text-sm font-bold text-gray-600 hover:text-brand transition-colors group">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform"></i>
+                <span>Kembali ke Marketplace</span>
+            </a>
+
+            <nav class="flex items-center gap-2 text-xs text-gray-400 font-medium" aria-label="Breadcrumb">
+                <a href="{{ route('home') }}" class="hover:text-brand transition-colors">Beranda</a>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-gray-300"></i>
+                <a href="{{ route('marketplace.index') }}" class="hover:text-brand transition-colors">Marketplace</a>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-gray-300"></i>
+                <span class="text-gray-700 font-bold truncate max-w-[200px] sm:max-w-[300px]">
+                    Toko {{ $user->sellerProfile->business_name ?? $user->name }}
+                </span>
+            </nav>
+        </div>
 
         {{-- Store Skeleton Loader --}}
         <div id="store-skeleton" class="hidden animate-pulse">
@@ -127,7 +145,7 @@
                                     alt="{{ $l->title }}" 
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
                                     onerror="this.src='https://placehold.co/400x400?text=Limbah'">
-                                <span class="absolute top-2 left-2 bg-brand/90 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wide shadow-xs">{{ $l->category->category_name ?? 'Limbah' }}</span>
+                                <span class="absolute top-2 left-2 bg-brand/90 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wide shadow-xs">{{ $l->category_short_name }}</span>
                             </div>
                             <div class="p-2.5 sm:p-3 flex flex-col justify-between grow gap-1.5">
                                 <div>

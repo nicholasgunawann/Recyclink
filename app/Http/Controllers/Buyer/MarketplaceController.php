@@ -25,19 +25,24 @@ class MarketplaceController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
 
             if ($request->input('tab') === 'toko') {
-                $query = User::role('seller')->whereHas('sellerProfile')->with('sellerProfile');
+                $query = User::role('seller')->whereHas('sellerProfile')->with(['sellerProfile', 'wasteListings']);
                 
                 if ($request->filled('search') || $request->filled('q')) {
                     $search = $request->input('search') ?? $request->input('q');
-                    $query->whereHas('sellerProfile', function($q) use ($search) {
-                        $q->where('business_name', 'like', '%' . $search . '%')
-                          ->orWhere('city', 'like', '%' . $search . '%');
+                    $query->where(function($q) use ($search) {
+                        $q->where('name', 'like', '%' . $search . '%')
+                          ->orWhereHas('sellerProfile', function($sp) use ($search) {
+                              $sp->where('business_name', 'like', '%' . $search . '%')
+                                 ->orWhere('city', 'like', '%' . $search . '%')
+                                 ->orWhere('business_type', 'like', '%' . $search . '%');
+                          });
                     });
                 }
 
                 if ($request->filled('lokasi')) {
-                    $query->whereHas('sellerProfile', function($q) use ($request) {
-                        $q->where('city', 'like', '%' . $request->input('lokasi') . '%');
+                    $lokasi = $request->input('lokasi');
+                    $query->whereHas('sellerProfile', function($q) use ($lokasi) {
+                        $q->where('city', 'like', '%' . $lokasi . '%');
                     });
                 }
 
@@ -45,23 +50,39 @@ class MarketplaceController extends Controller
                     $catNames = (array)$request->input('categories');
                     $query->whereHas('wasteListings', function($q) use ($catNames) {
                         $q->whereHas('category', function($q2) use ($catNames) {
-                            $q2->whereIn('category_name', $catNames);
+                            $q2->where(function($subQ) use ($catNames) {
+                                foreach ($catNames as $cat) {
+                                    $subQ->orWhere('category_name', 'like', '%' . $cat . '%')
+                                         ->orWhere('slug', 'like', '%' . $cat . '%');
+                                }
+                            });
                         });
                     });
                 }
                 
+                $sort = $request->input('sort', 'terbaru');
+                if ($sort === 'jarak-asc') {
+                    $query->whereHas('sellerProfile', function($sp) {
+                        $sp->orderBy('city', 'asc');
+                    });
+                } else {
+                    $query->latest();
+                }
+
                 $paginator = $query->paginate(18);
                 $items = collect($paginator->items())->map(function($s) {
                     return [
                         'id' => $s->id,
                         'name' => $s->sellerProfile->business_name ?? $s->name,
                         'city' => $s->sellerProfile->city ?? 'Lokasi tidak diketahui',
-                        'type' => $s->sellerProfile->business_type ?? 'Toko',
-                        'avatar' => $s->avatar ? (str_starts_with($s->avatar, 'http') ? $s->avatar : asset('storage/'.$s->avatar)) : 'https://ui-avatars.com/api/?name='.urlencode($s->name).'&background=7A9C59&color=fff',
+                        'type' => $s->sellerProfile->business_type ?? 'Pengepul / Toko',
+                        'avatar' => $s->avatar ? (str_starts_with($s->avatar, 'http') ? $s->avatar : asset('storage/'.$s->avatar)) : 'https://ui-avatars.com/api/?name='.urlencode($s->sellerProfile->business_name ?? $s->name).'&background=7A9C59&color=fff',
                     ];
                 });
             } else {
-                $query = WasteListing::verified()->with(['category', 'primaryImage', 'seller.sellerProfile']);
+                $query = WasteListing::verified()
+                    ->where('availability_status', '!=', WasteListing::AVAILABILITY_INACTIVE)
+                    ->with(['category', 'primaryImage', 'seller.sellerProfile']);
                 
                 if ($request->input('available_only', 1) == 1) {
                     $query->available();
@@ -78,7 +99,12 @@ class MarketplaceController extends Controller
                 if ($request->has('categories')) {
                     $catNames = (array)$request->input('categories');
                     $query->whereHas('category', function($q) use ($catNames) {
-                        $q->whereIn('category_name', $catNames);
+                        $q->where(function($subQ) use ($catNames) {
+                            foreach ($catNames as $cat) {
+                                $subQ->orWhere('category_name', 'like', '%' . $cat . '%')
+                                     ->orWhere('slug', 'like', '%' . $cat . '%');
+                            }
+                        });
                     });
                 }
                 if ($request->filled('lokasi')) {
@@ -106,7 +132,7 @@ class MarketplaceController extends Controller
                     return [
                         'id' => $l->id,
                         'title' => $l->title,
-                        'categoryLabel' => $l->category->category_name ?? 'Limbah',
+                        'categoryLabel' => $l->category_short_name,
                         'city' => $l->city,
                         'price' => (float)$l->price_per_unit,
                         'unit' => $l->unit,
@@ -133,9 +159,9 @@ class MarketplaceController extends Controller
     // Marketplace detail – use route model binding
     public function show(WasteListing $wasteListing)
     {
-        // Ensure only approved listings are visible
-        if ($wasteListing->verification_status !== WasteListing::VERIFICATION_APPROVED) {
-            abort(404, 'Listing not found or not approved.');
+        // Ensure only approved and active listings are visible
+        if ($wasteListing->verification_status !== WasteListing::VERIFICATION_APPROVED || $wasteListing->availability_status === WasteListing::AVAILABILITY_INACTIVE) {
+            abort(404, 'Listing not found, not approved, or inactive.');
         }
 
         $wasteListing->load(['category', 'images', 'seller.sellerProfile']);

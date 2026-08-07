@@ -6,7 +6,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {{-- Header --}}
-        <div class="text-center max-w-xl mx-auto mb-14">
+        <div class="text-center max-w-xl mx-auto mb-14 scroll-reveal">
             <span class="text-xs font-semibold text-brand uppercase tracking-widest">Cara Kerja</span>
             <h2 class="mt-2 text-3xl font-bold text-gray-900 tracking-tight">
                 Mulai dalam 4 Langkah Mudah
@@ -33,7 +33,7 @@
                 @endphp
 
                 @foreach($steps as $s)
-                    <div class="relative flex flex-col items-center text-center group">
+                    <div class="relative flex flex-col items-center text-center group scroll-reveal">
                         <div class="relative mb-5">
                             <div class="w-20 h-20 rounded-2xl bg-white border border-gray-100 shadow-sm
                                         flex items-center justify-center
@@ -53,7 +53,7 @@
         </div>
 
         {{-- CTA --}}
-        <div class="mt-12 text-center">
+        <div class="mt-12 text-center scroll-reveal">
             <a href="{{ url('/register') }}"
                class="inline-flex items-center gap-2 bg-brand hover:bg-brand-hover text-white font-semibold px-6 py-3 rounded-xl transition-colors shadow-sm">
                 Mulai Sekarang

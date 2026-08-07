@@ -12,7 +12,7 @@ class EducationController extends Controller
     public function index()
     {
         $allContents = EducationContent::published()
-            ->select(['id', 'admin_id', 'title', 'slug', 'thumbnail_url', 'content_type', 'status', 'published_at', 'excerpt', 'view_count'])
+            ->select(['id', 'admin_id', 'title', 'slug', 'content', 'thumbnail_url', 'content_type', 'status', 'published_at', 'excerpt', 'view_count'])
             ->with('admin:id,name')
             ->latest()
             ->get();

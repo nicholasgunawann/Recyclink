@@ -186,8 +186,6 @@
         const fileInput = document.getElementById('dropzone-file');
         const fileList = document.getElementById('file-list');
 
-        const dt = new DataTransfer();
-
         // Title character counter & validation
         titleInput?.addEventListener('input', function() {
             const len = this.value.length;
@@ -230,24 +228,28 @@
 
         // File dropzone validation
         fileInput?.addEventListener('change', function() {
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
-            const maxBytes = 2 * 1024 * 1024; // 2MB
+            const validExts = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
+            const maxBytes = 10 * 1024 * 1024; // 10MB limit for mobile photos
             let hasError = false;
             let errorMessage = '';
 
-            for (let i = 0; i < this.files.length; i++) {
-                const file = this.files[i];
-                if (!allowedTypes.includes(file.type)) {
+            const selectedFiles = Array.from(this.files);
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                const ext = file.name.split('.').pop().toLowerCase();
+                const isImage = file.type ? file.type.toLowerCase().startsWith('image/') : true;
+
+                if (!isImage || !validExts.includes(ext)) {
                     hasError = true;
-                    errorMessage = `File "${file.name}" tidak didukung! Format harus JPG, PNG, atau WEBP.`;
+                    errorMessage = `File "${file.name}" tidak didukung! Format harus JPG, PNG, WEBP, atau HEIC.`;
                     break;
                 }
                 if (file.size > maxBytes) {
                     hasError = true;
-                    errorMessage = `File "${file.name}" melebihi ukuran maksimal 2MB!`;
+                    errorMessage = `File "${file.name}" melebihi ukuran maksimal 10MB!`;
                     break;
                 }
-                dt.items.add(file);
             }
 
             if (hasError) {
@@ -261,11 +263,11 @@
                 } else {
                     alert(errorMessage);
                 }
-                this.value = ''; // Reset input
+                this.value = ''; // Reset input on error
+                fileList.innerHTML = '';
                 return;
             }
 
-            this.files = dt.files;
             fileList.innerHTML = '';
             if (this.files.length > 0) {
                 fileList.innerHTML = `<span class="text-brand font-bold">${this.files.length} foto valid dipilih</span>`;

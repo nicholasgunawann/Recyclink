@@ -308,6 +308,7 @@ Route::group([
     Route::patch('/listings/{wasteListing}/approve', [AdminListingVerificationController::class, 'approve'])->name('listings.verification.approve');
     Route::patch('/listings/{wasteListing}/reject', [AdminListingVerificationController::class, 'reject'])->name('listings.verification.reject');
     Route::patch('/listings/{wasteListing}/deactivate', [AdminListingVerificationController::class, 'deactivate'])->name('listings.verification.deactivate');
+    Route::patch('/listings/{wasteListing}/activate', [AdminListingVerificationController::class, 'activate'])->name('listings.verification.activate');
 
     // Transaction Management
     Route::get('/transactions', [AdminTransactionController::class, 'index'])->name('transactions.index');

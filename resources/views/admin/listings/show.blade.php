@@ -147,10 +147,12 @@
             
             <div class="flex items-center gap-2 w-full sm:w-auto">
                 <span class="text-sm font-semibold text-gray-600">Status saat ini:</span>
-                @if($listing->verification_status === 'pending')
-                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800">Menunggu</span>
+                @if($listing->availability_status === 'inactive')
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-100 text-rose-800">Nonaktif (Admin)</span>
+                @elseif($listing->verification_status === 'pending')
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800">Menunggu Verifikasi</span>
                 @elseif($listing->verification_status === 'approved')
-                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800">Disetujui</span>
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800">Aktif & Tayang</span>
                 @elseif($listing->verification_status === 'rejected')
                     <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-red-100 text-red-800">Ditolak</span>
                 @endif
@@ -165,12 +167,20 @@
                     <button type="button" onclick="document.getElementById('approve-modal').classList.remove('hidden')" class="w-full sm:w-auto px-6 py-2.5 bg-emerald-500 text-white hover:bg-emerald-600 font-bold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2">
                         <i data-lucide="check" class="w-4 h-4"></i> Setujui & Tayangkan
                     </button>
-                @else
-                    <form action="{{ route('admin.listings.verification.deactivate', $listing) }}" method="POST" data-confirm="Nonaktifkan listing ini?">
+                @elseif($listing->availability_status === 'inactive')
+                    <form action="{{ route('admin.listings.verification.activate', $listing) }}" method="POST" data-confirm="Aktifkan kembali listing ini agar tayang di Marketplace?">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-gray-200 text-gray-700 hover:bg-gray-300 font-bold rounded-xl transition-colors">
-                            Nonaktifkan
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 font-bold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="play" class="w-4 h-4"></i> Aktifkan Kembali
+                        </button>
+                    </form>
+                @else
+                    <form action="{{ route('admin.listings.verification.deactivate', $listing) }}" method="POST" data-confirm="Nonaktifkan listing ini agar tidak tayang di Marketplace?">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="power" class="w-4 h-4"></i> Nonaktifkan Listing
                         </button>
                     </form>
                 @endif

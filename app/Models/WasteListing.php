@@ -24,6 +24,13 @@ class WasteListing extends Model
         static::created($clearCache);
         static::updated($clearCache);
         static::deleted($clearCache);
+
+        static::deleting(function (WasteListing $listing) {
+            // ponytail: automatically destroy all physical image assets (Cloudinary/disk) when listing is deleted
+            foreach ($listing->images as $image) {
+                $image->delete();
+            }
+        });
     }
 
     public const VERIFICATION_PENDING = 'pending';
@@ -75,6 +82,12 @@ class WasteListing extends Model
     public function favoritedBy(): HasMany
     {
         return $this->hasMany(FavoriteListing::class, 'listing_id');
+    }
+
+    public function getCategoryShortNameAttribute(): string
+    {
+        if (!$this->category) return 'Limbah';
+        return $this->category->short_name;
     }
 
     public function incrementViewCount(): void { $this->increment('view_count'); }

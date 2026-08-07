@@ -60,7 +60,7 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-4">
                                         <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-gray-100 bg-gray-50">
-                                            <img src="{{ $c->thumbnail_url ? asset('storage/' . $c->thumbnail_url) : 'https://placehold.co/120x120?text=Edukasi' }}" class="w-full h-full object-cover" alt="">
+                                            <img src="{{ $c->display_thumbnail_url }}" class="w-full h-full object-cover" alt="">
                                         </div>
                                         <div class="min-w-0">
                                             <h4 class="font-bold text-gray-900 leading-snug truncate max-w-md">{{ $c->title }}</h4>

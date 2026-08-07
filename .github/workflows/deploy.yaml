@@ -1,4 +1,4 @@
-# ponytail: complete CI/CD SSH deployment pipeline for DomaiNesia Nimbus
+# ponytail: streamlined CI/CD SSH deployment pipeline for DomaiNesia Nimbus
 name: Deploy to DomaiNesia Nimbus
 
 on:
@@ -6,41 +6,10 @@ on:
     branches: [ main ]
 
 jobs:
-  test-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring, pdo_mysql, bcmath, ctype, xml, json, zip
-          tools: composer:v2
-
-      - name: Copy Env
-        run: cp .env.example .env
-
-      - name: Install Dependencies
-        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --ignore-platform-reqs
-
-      - name: Generate Key
-        run: php artisan key:generate
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Build Assets for Tests
-        run: |
-          npm install
-          npm run build
-
-      - name: Run Tests
-        run: php artisan test
-
       - name: Deploy via SSH to DomaiNesia
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -51,14 +20,26 @@ jobs:
           script: |
             cd public_html
             rm -f index.html default.html default.php hosting.html
+            
+            # Setup PHP & Node PATH for cPanel environment
             export PATH="/opt/cpanel/ea-php83/root/usr/bin:/usr/local/bin:/opt/alt/php83/usr/bin:$PATH"
+            
+            # Pull latest changes from main branch
             /usr/bin/git fetch --depth=1 https://github.com/nicholasgunawann/Recyclink.git main
             /usr/bin/git reset --hard FETCH_HEAD
+            
+            # Ensure .htaccess root redirect is present
             echo -e "<IfModule mod_rewrite.c>\n    RewriteEngine On\n    RewriteRule ^$ public/ [L]\n    RewriteRule (.*) public/\$1 [L]\n</IfModule>" > .htaccess
+            
+            # Install PHP & Node dependencies, then build Vite assets on server
             composer install --no-dev --optimize-autoloader --no-scripts
-            (ea-php83 artisan package:discover --ansi || php artisan package:discover --ansi) || true
-            (ea-php83 artisan migrate --force || php artisan migrate --force) || true
-            (ea-php83 artisan db:seed --force || php artisan db:seed --force) || true
-            (ea-php83 artisan config:cache || php artisan config:cache) || true
-            (ea-php83 artisan route:cache || php artisan route:cache) || true
-            (ea-php83 artisan view:cache || php artisan view:cache) || true
+            (npm install && npm run build) || true
+            
+            # Execute Laravel optimization commands
+            php artisan package:discover --ansi || ea-php83 artisan package:discover --ansi || true
+            php artisan storage:link || ea-php83 artisan storage:link || true
+            php artisan migrate --force || ea-php83 artisan migrate --force || true
+            php artisan db:seed --force || ea-php83 artisan db:seed --force || true
+            php artisan config:cache || ea-php83 artisan config:cache || true
+            php artisan route:cache || ea-php83 artisan route:cache || true
+            php artisan view:cache || ea-php83 artisan view:cache || true

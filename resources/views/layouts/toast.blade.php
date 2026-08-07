@@ -1,5 +1,5 @@
 {{-- ponytail: minimal reusable toast notification element for Recyclink theme --}}
-<div id="toast-container" class="fixed top-5 right-5 z-[99999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+<div id="toast-container" class="fixed top-24 right-6 z-[99999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
 
 <script>
     (function() {
@@ -9,7 +9,7 @@
             if (!container) {
                 container = document.createElement('div');
                 container.id = 'toast-container';
-                container.className = 'fixed top-5 right-5 z-[99999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0';
+                container.className = 'fixed top-24 right-6 z-[99999] flex flex-col gap-3 max-w-sm w-full pointer-events-none px-4 sm:px-0';
                 document.body.appendChild(container);
             }
 

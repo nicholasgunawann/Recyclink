@@ -1,7 +1,6 @@
 @extends('layouts.master')
 @section('title', 'Pusat Edukasi – Recyclink')
 @section('content')
-    @include('pages.edukasi.hero')
     @include('pages.edukasi.tabs')
     
     <div id="tab-content-artikel" class="tab-content hidden">
