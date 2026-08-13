@@ -10,6 +10,7 @@ use App\Http\Controllers\Buyer\MarketplaceController;
 // Auth Controller Imports
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\PasswordResetController;
 
 // Chat Controller Imports
 use App\Http\Controllers\Chat\ConversationController;
@@ -78,9 +79,10 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
 
-Route::get('/forgot-password', function () {
-    return view('auth.forgot-password');
-})->name('password.request');
+Route::get('/forgot-password', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
 
 Route::get('/email/verify', function () {
     return view('auth.verify-email');
@@ -277,6 +279,7 @@ Route::group([
         // Cart
         Route::get('/cart', [BuyerCartController::class, 'index'])->name('cart.index');
         Route::post('/cart/checkout', [BuyerCartController::class, 'checkout'])->name('cart.checkout');
+        Route::delete('/cart/multiple', [BuyerCartController::class, 'destroyMultiple'])->name('cart.destroy-multiple');
         Route::post('/cart/{wasteListing}', [BuyerCartController::class, 'store'])->name('cart.store');
         Route::put('/cart/{wasteListing}', [BuyerCartController::class, 'update'])->name('cart.update');
         Route::delete('/cart/{wasteListing}', [BuyerCartController::class, 'destroy'])->name('cart.destroy');

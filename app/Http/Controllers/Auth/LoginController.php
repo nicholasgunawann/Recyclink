@@ -43,8 +43,12 @@ class LoginController extends Controller implements HasMiddleware
             );
             $user = auth()->user();
             return $this->redirectUser($user)->with('success', 'Selamat datang kembali, ' . ($user->name ?? 'Pengguna') . '! Berhasil masuk.');
+        } catch (\App\Exceptions\InvalidCredentialsException $e) {
+            return redirect()->back()->withInput()->with('error', 'Email atau kata sandi yang Anda masukkan salah.');
         } catch (RecyclinkException $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Email atau kata sandi yang Anda masukkan salah.');
         }
     }
 

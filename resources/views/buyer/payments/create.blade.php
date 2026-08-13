@@ -39,13 +39,13 @@
         @php
             $basePlatformFee = $order->subtotal * 0.05;
             $baseTotal = $order->subtotal + $order->shipping_cost + $basePlatformFee;
+            // ponytail: online payment methods only (no cash/cod)
             $methods = [
                 'bca' => ['name' => 'Virtual Account BCA', 'fee' => 4300, 'min' => 10000, 'icon' => 'building-2', 'desc' => 'Otomatis dicek (Bayar via m-BCA / ATM BCA)'],
                 'bni' => ['name' => 'Virtual Account BNI', 'fee' => 3000, 'min' => 15000, 'icon' => 'building-2', 'desc' => 'Otomatis dicek (Bayar via BNI Mobile / ATM BNI)'],
                 'bri' => ['name' => 'Virtual Account BRI', 'fee' => 3000, 'min' => 15000, 'icon' => 'building-2', 'desc' => 'Otomatis dicek (Bayar via BRImo / ATM BRI)'],
                 'bsi' => ['name' => 'Virtual Account BSI', 'fee' => 3900, 'min' => 10000, 'icon' => 'building-2', 'desc' => 'Otomatis dicek (Bayar via BSI Mobile / ATM BSI)'],
                 'qris' => ['name' => 'QRIS', 'fee' => ceil($baseTotal * 0.007) + 500, 'min' => 1000, 'icon' => 'qr-code', 'desc' => 'Scan kode QRIS menggunakan m-banking atau E-Wallet'],
-                'cash_on_delivery' => ['name' => 'Cash / COD', 'fee' => 0, 'min' => 0, 'icon' => 'banknote', 'desc' => 'Bayar di tempat saat pengambilan / pengiriman'],
             ];
 
             $availableMethods = array_filter($methods, function($m) use ($baseTotal) {

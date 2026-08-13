@@ -43,7 +43,8 @@ class BuyerPaymentController extends Controller implements HasMiddleware
             abort(403, 'Unauthorized action.');
         }
 
-        $method = $request->input('payment_method', 'cash_on_delivery');
+        // ponytail: online gateway methods only
+        $method = $request->input('payment_method');
 
         $basePlatformFee = 0.00; // No base platform fee, only gateway fee
         $baseTotal = $order->subtotal + $order->shipping_cost + $basePlatformFee;
@@ -55,58 +56,37 @@ class BuyerPaymentController extends Controller implements HasMiddleware
             'bri' => ['fee' => 3000, 'min' => 15000],
             'bsi' => ['fee' => 3900, 'min' => 10000],
             'qris' => ['fee' => ceil($baseTotal * 0.007) + 500, 'min' => 1000],
-            'cash_on_delivery' => ['fee' => 0, 'min' => 0],
         ];
 
-        if (isset($methods[$method])) {
-            $rule = $methods[$method];
-            if ($baseTotal < $rule['min']) {
-                return redirect()->back()->with('error', 'Total transaksi belum memenuhi minimum untuk metode pembayaran ini.');
-            }
-
-            // Update order with dynamic fee if not already applied
-            // To prevent double adding if user submits multiple times, we check if payment is already pending/created.
-            // But since payment is created later, we can just apply it.
-            // Wait, what if they fail to checkout and come back? We need to ensure we don't add fee twice.
-            // A safer way is to recalculate from subtotal + shipping_cost + base 5% platform fee.
-            $basePlatformFee = 0.00; // No base platform fee, only gateway fee
-            $newPlatformFee = $basePlatformFee + $rule['fee'];
-            $newTotalAmount = $order->subtotal + $order->shipping_cost + $newPlatformFee;
-
-            if ($order->total_amount !== $newTotalAmount) {
-                $order->update([
-                    'platform_fee' => $newPlatformFee,
-                    'total_amount' => $newTotalAmount,
-                ]);
-                $order->refresh();
-            }
+        if (!isset($methods[$method])) {
+            return redirect()->back()->with('error', 'Metode pembayaran tidak valid.');
         }
 
-        // Jika metode adalah COD, kita biarkan logic aslinya berjalan (atau ubah status menjadi processing)
-        if ($method === 'cash_on_delivery') {
-            try {
-                $payment = $this->paymentService->createManualPayment(auth()->user(), $order, $request->validated());
-                // Untuk COD, biasanya tidak langsung paid, tapi kita ikuti flow asli yang menganggap paid/selesai divalidasi
-                $this->paymentService->markAsPaid(auth()->user(), $payment);
-                return redirect()->route('buyer.orders.show', $order)->with('success', 'Pesanan COD berhasil dikonfirmasi. Silakan temui penjual.');
-            } catch (RecyclinkException $e) {
-                return redirect()->back()->with('error', $e->getMessage());
-            }
+        $rule = $methods[$method];
+        if ($baseTotal < $rule['min']) {
+            return redirect()->back()->with('error', 'Total transaksi belum memenuhi minimum untuk metode pembayaran ini.');
         }
 
-        // Jika metode BUKAN COD, cek apakah kita berada di mode sandbox atau live
-        $dompetxMode = env('DOMPETX_MODE', 'sandbox');
+        // Update order with dynamic fee if not already applied
+        $newPlatformFee = $basePlatformFee + $rule['fee'];
+        $newTotalAmount = $order->subtotal + $order->shipping_cost + $newPlatformFee;
 
-        if ($dompetxMode === 'live') {
+        if ($order->total_amount !== $newTotalAmount) {
+            $order->update([
+                'platform_fee' => $newPlatformFee,
+                'total_amount' => $newTotalAmount,
+            ]);
+            $order->refresh();
+        }
+
+        // ponytail: process payment via DompetX Direct API or Simulation
+        $apiKey = env('DOMPETX_API_KEY');
+        $dompetxMode = env('DOMPETX_MODE', 'live');
+
+        if (!empty($apiKey) && $dompetxMode !== 'simulation') {
             try {
-                $apiKey = env('DOMPETX_API_KEY');
-                if (empty($apiKey)) {
-                    return redirect()->back()->with('error', 'Konfigurasi API Key DompetX belum diatur. Hubungi admin.');
-                }
-
-                // Gunakan Direct API (bukan checkout) agar user tetap di website kita (White-label)
+                // Gunakan Direct API agar user tetap di website kita (White-label)
                 $apiUrl = env('DOMPETX_API_URL', 'https://api.dompetx.com/v1/payments');
-                // PASTIKAN menghapus suffix /checkout jika ada di Environment Variables Railway
                 $apiUrl = str_replace('/checkout', '', $apiUrl);
 
                 // Tambahkan suffix attempt untuk menghindari 409 duplicate transaction reference dari DompetX jika user mencoba bayar ulang
@@ -213,8 +193,8 @@ class BuyerPaymentController extends Controller implements HasMiddleware
             }
         }
 
-        // Jika mode masih sandbox di env, tetap berikan error agar admin tahu harus mengubah ke live
-        return redirect()->back()->with('error', 'Mode pembayaran belum disetting ke live. Silakan hubungi admin.');
+        // Fallback jika API Key belum disetting
+        return redirect()->route('buyer.dompetx.checkout', ['order' => $order->id, 'method' => $method]);
     }
 
     // ponytail: show payment proof details

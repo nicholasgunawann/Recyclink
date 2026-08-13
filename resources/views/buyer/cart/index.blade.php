@@ -38,10 +38,14 @@
             <!-- Header Card (Pilih Semua) -->
             <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between mb-4 shadow-sm">
                 <div class="flex items-center gap-3">
-                    <input type="checkbox" class="w-5 h-5 rounded border-gray-300 text-brand focus:ring-brand cursor-pointer select-all" checked>
-                    <span class="text-base font-bold text-gray-900">Pilih Semua <span class="font-normal text-gray-500">({{ $cartItems->count() }})</span></span>
+                    <input type="checkbox" id="select-all" class="w-5 h-5 rounded border-gray-300 text-brand focus:ring-brand cursor-pointer select-all" checked>
+                    <label for="select-all" class="text-base font-bold text-gray-900 cursor-pointer">Pilih Semua <span class="font-normal text-gray-500">({{ $cartItems->count() }})</span></label>
                 </div>
-                <button class="text-base font-bold text-brand hover:text-brand-hover">Hapus</button>
+                <form method="POST" action="{{ route('buyer.cart.destroy-multiple') }}" id="bulk-delete-form" class="m-0" onsubmit="return confirm('Hapus barang terpilih dari keranjang?')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="text-base font-bold text-brand hover:text-brand-hover cursor-pointer">Hapus</button>
+                </form>
             </div>
 
             <!-- Store/Products Card -->
@@ -70,7 +74,7 @@
                     <!-- Product body -->
                     <div class="flex items-start gap-4">
                         <div class="pt-6 shrink-0">
-                            <input type="checkbox" class="w-5 h-5 rounded border-gray-300 text-brand focus:ring-brand cursor-pointer item-checkbox" value="{{ $listing->id }}" data-price="{{ $listing->price_per_unit }}" data-qty="{{ $qty }}" checked>
+                            <input type="checkbox" name="selected_items[]" value="{{ $listing->id }}" form="checkout-form" class="w-5 h-5 rounded border-gray-300 text-brand focus:ring-brand cursor-pointer item-checkbox" data-price="{{ $listing->price_per_unit }}" data-qty="{{ $qty }}" checked>
                         </div>
                         
                         <a href="{{ route('marketplace.show', $listing->id) }}" class="w-20 h-20 shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 block">
@@ -200,92 +204,141 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+// ponytail: sync checkboxes and live calculation with Turbo support
+function initCartPage() {
     const selectAllCheckboxes = document.querySelectorAll('.select-all');
     const storeCheckboxes = document.querySelectorAll('.store-checkbox');
     const itemCheckboxes = document.querySelectorAll('.item-checkbox');
     const totalPriceEl = document.getElementById('total-price');
     const totalQtyEl = document.getElementById('total-qty');
     const checkoutForm = document.getElementById('checkout-form');
+    const bulkDeleteForm = document.getElementById('bulk-delete-form');
+
+    if (!checkoutForm && itemCheckboxes.length === 0) return;
 
     function calculateTotal() {
         let total = 0;
         let qty = 0;
+
         itemCheckboxes.forEach(cb => {
             if (cb.checked) {
-                total += (parseInt(cb.dataset.price) * parseInt(cb.dataset.qty));
-                qty += parseInt(cb.dataset.qty);
+                const price = parseFloat(cb.dataset.price) || 0;
+                const itemQty = parseInt(cb.dataset.qty) || 1;
+                total += (price * itemQty);
+                qty += itemQty;
             }
         });
-        if(totalPriceEl) totalPriceEl.textContent = 'Rp' + total.toLocaleString('id-ID').replace(/,/g, '.');
-        if(totalQtyEl) totalQtyEl.textContent = 'Beli (' + qty + ')';
+
+        if (totalPriceEl) {
+            totalPriceEl.textContent = 'Rp' + total.toLocaleString('id-ID');
+        }
+        if (totalQtyEl) {
+            totalQtyEl.textContent = 'Beli (' + qty + ')';
+        }
+    }
+
+    function syncUI() {
+        let allItemsChecked = itemCheckboxes.length > 0;
+
+        document.querySelectorAll('.store-block').forEach(storeBlock => {
+            const storeCb = storeBlock.querySelector('.store-checkbox');
+            const items = storeBlock.querySelectorAll('.item-checkbox');
+            const allStoreChecked = items.length > 0 && Array.from(items).every(cb => cb.checked);
+            if (storeCb) storeCb.checked = allStoreChecked;
+            if (!allStoreChecked) allItemsChecked = false;
+        });
+
+        selectAllCheckboxes.forEach(selectAll => {
+            selectAll.checked = allItemsChecked;
+        });
+
+        calculateTotal();
     }
 
     selectAllCheckboxes.forEach(selectAll => {
-        selectAll.addEventListener('change', function() {
+        selectAll.onclick = function() {
             const isChecked = this.checked;
             itemCheckboxes.forEach(cb => cb.checked = isChecked);
             storeCheckboxes.forEach(cb => cb.checked = isChecked);
+            selectAllCheckboxes.forEach(cb => cb.checked = isChecked);
             calculateTotal();
-        });
+        };
     });
 
     storeCheckboxes.forEach(storeCb => {
-        storeCb.addEventListener('change', function() {
+        storeCb.onclick = function() {
             const isChecked = this.checked;
             const storeBlock = this.closest('.store-block');
-            if(storeBlock) {
+            if (storeBlock) {
                 storeBlock.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = isChecked);
             }
-            calculateTotal();
-            
-            if (!isChecked) {
-                selectAllCheckboxes.forEach(cb => cb.checked = false);
-            }
-        });
+            syncUI();
+        };
     });
 
     itemCheckboxes.forEach(cb => {
-        cb.addEventListener('change', function() {
-            calculateTotal();
-            if (!this.checked) {
-                selectAllCheckboxes.forEach(cb => cb.checked = false);
-                const storeBlock = this.closest('.store-block');
-                if (storeBlock) {
-                    const storeCb = storeBlock.querySelector('.store-checkbox');
-                    if(storeCb) storeCb.checked = false;
-                }
-            }
-        });
+        cb.onclick = function() {
+            syncUI();
+        };
     });
-    
-    // Initial calc
-    calculateTotal();
 
-    // Checkout form sync
-    if(checkoutForm) {
-        checkoutForm.addEventListener('submit', function(e) {
-            checkoutForm.querySelectorAll('input[name="selected_items[]"]').forEach(i => i.remove());
-            
-            let hasSelection = false;
+    // Checkout form sync & validation
+    if (checkoutForm) {
+        checkoutForm.onsubmit = function(e) {
+            checkoutForm.querySelectorAll('input[data-cart-sync="true"]').forEach(i => i.remove());
+
+            let selectedCount = 0;
             itemCheckboxes.forEach(cb => {
-                if(cb.checked) {
-                    hasSelection = true;
+                if (cb.checked) {
+                    selectedCount++;
                     const input = document.createElement('input');
                     input.type = 'hidden';
                     input.name = 'selected_items[]';
                     input.value = cb.value;
+                    input.setAttribute('data-cart-sync', 'true');
                     checkoutForm.appendChild(input);
                 }
             });
-            
-            if(!hasSelection) {
+
+            if (selectedCount === 0) {
                 e.preventDefault();
-                alert('Pilih setidaknya satu barang untuk dibeli');
+                alert('Pilih setidaknya satu barang untuk dibeli.');
+                return false;
             }
-        });
+        };
     }
-});
+
+    // Bulk delete form sync & validation
+    if (bulkDeleteForm) {
+        bulkDeleteForm.onsubmit = function(e) {
+            bulkDeleteForm.querySelectorAll('input[name="selected_items[]"]').forEach(i => i.remove());
+            let count = 0;
+            itemCheckboxes.forEach(cb => {
+                if (cb.checked) {
+                    count++;
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'selected_items[]';
+                    input.value = cb.value;
+                    bulkDeleteForm.appendChild(input);
+                }
+            });
+            if (count === 0) {
+                e.preventDefault();
+                alert('Pilih setidaknya satu barang yang ingin dihapus.');
+                return false;
+            }
+        };
+    }
+
+    // Initial sync on load
+    syncUI();
+}
+
+['turbo:load', 'DOMContentLoaded'].forEach(ev => document.addEventListener(ev, initCartPage));
+if (document.readyState !== 'loading') {
+    initCartPage();
+}
 </script>
 @endpush
 @endsection

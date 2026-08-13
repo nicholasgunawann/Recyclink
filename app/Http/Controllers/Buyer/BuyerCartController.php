@@ -85,6 +85,24 @@ class BuyerCartController extends Controller implements HasMiddleware
         return redirect()->back()->with('success', 'Barang berhasil dihapus dari keranjang.');
     }
 
+    public function destroyMultiple(Request $request)
+    {
+        $cart = session()->get('cart', []);
+        $selectedIds = $request->input('selected_items', []);
+
+        if (empty($selectedIds)) {
+            session()->forget('cart');
+            return redirect()->back()->with('success', 'Semua barang berhasil dihapus dari keranjang.');
+        }
+
+        foreach ($selectedIds as $id) {
+            unset($cart[$id]);
+        }
+        session()->put('cart', $cart);
+
+        return redirect()->back()->with('success', 'Barang terpilih berhasil dihapus dari keranjang.');
+    }
+
     public function checkout(Request $request)
     {
         $cartData = session()->get('cart', []);
@@ -100,6 +118,7 @@ class BuyerCartController extends Controller implements HasMiddleware
 
         $orderService = app(\App\Services\OrderService::class);
         $orders = [];
+        $lastError = null;
 
         foreach ($selectedIds as $listingId) {
             if (!isset($cartData[$listingId])) continue;
@@ -120,7 +139,7 @@ class BuyerCartController extends Controller implements HasMiddleware
                     // Remove processed item from cart
                     unset($cartData[$listingId]);
                 } catch (\Exception $e) {
-                    // Skip or log error if listing is unavailable
+                    $lastError = $e->getMessage();
                 }
             }
         }
@@ -133,7 +152,7 @@ class BuyerCartController extends Controller implements HasMiddleware
         } elseif (count($orders) > 1) {
             return redirect()->route('buyer.orders.index')->with('success', 'Pesanan berhasil dibuat untuk semua item! Silakan lakukan pembayaran satu per satu.');
         } else {
-            return redirect()->back()->with('error', 'Gagal membuat pesanan. Stok mungkin habis.');
+            return redirect()->back()->with('error', $lastError ?? 'Gagal membuat pesanan. Stok mungkin habis atau listing tidak tersedia.');
         }
     }
 }

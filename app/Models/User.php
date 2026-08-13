@@ -37,6 +37,12 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    // ponytail: custom reset password email
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
+
     // ponytail: role helpers — one-liner guards used everywhere
     public function isActive(): bool { return $this->status === self::STATUS_ACTIVE; }
     public function isSeller(): bool { return $this->hasRole('seller'); }

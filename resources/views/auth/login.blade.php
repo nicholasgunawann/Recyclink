@@ -64,9 +64,27 @@
                 <p class="mt-2 text-gray-600">Silakan masukkan email dan kata sandi Anda.</p>
             </div>
 
-            
+            {{-- Flash Messages --}}
+            @if(session('error'))
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+                    <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 mt-0.5 shrink-0"></i>
+                    <p class="text-sm font-semibold text-red-700">{{ session('error') }}</p>
+                </div>
+            @endif
 
-            
+            @if(session('success'))
+                <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-start gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mt-0.5 shrink-0"></i>
+                    <p class="text-sm font-semibold text-green-700">{{ session('success') }}</p>
+                </div>
+            @endif
+
+            @if(session('status'))
+                <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-start gap-3">
+                    <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mt-0.5 shrink-0"></i>
+                    <p class="text-sm font-semibold text-green-700">{{ session('status') }}</p>
+                </div>
+            @endif
 
             <form action="{{ route('login') }}" method="POST" class="space-y-6" data-turbo="false">
                 @csrf
