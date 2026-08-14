@@ -15,7 +15,7 @@ class HomeController extends Controller
         return view('public.home', [
             'recentListings' => WasteListing::verified()
                 ->available()
-                ->with(['category', 'seller.sellerProfile', 'primaryImage'])
+                ->with(['category', 'seller.sellerProfile', 'primaryImage', 'images'])
                 ->latest()
                 ->take(4)
                 ->get(),

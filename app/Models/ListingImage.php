@@ -24,12 +24,16 @@ class ListingImage extends Model
         });
     }
 
-    // ponytail: accessor resolves disk-aware URL transparently
+    // ponytail: accessor resolves disk-aware URL transparently using asset()
     public function getUrlAttribute(): string
     {
-        return str_starts_with($this->image_url, 'http')
-            ? $this->image_url
-            : Storage::disk($this->disk ?? 'public')->url($this->image_url);
+        if (empty($this->image_url)) return '';
+
+        if (str_starts_with($this->image_url, 'http://') || str_starts_with($this->image_url, 'https://')) {
+            return $this->image_url;
+        }
+
+        return asset('storage/' . ltrim($this->image_url, '/'));
     }
 
     // ponytail: extract Cloudinary public_id from secure_url or path

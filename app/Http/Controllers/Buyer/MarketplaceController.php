@@ -82,7 +82,7 @@ class MarketplaceController extends Controller
             } else {
                 $query = WasteListing::verified()
                     ->where('availability_status', '!=', WasteListing::AVAILABILITY_INACTIVE)
-                    ->with(['category', 'primaryImage', 'seller.sellerProfile']);
+                    ->with(['category', 'primaryImage', 'images', 'seller.sellerProfile']);
                 
                 if ($request->input('available_only', 1) == 1) {
                     $query->available();
@@ -138,7 +138,7 @@ class MarketplaceController extends Controller
                         'unit' => $l->unit,
                         'stock' => (float)$l->quantity,
                         'sellerName' => $l->seller && $l->seller->sellerProfile ? $l->seller->sellerProfile->business_name : ($l->seller->name ?? 'Penjual'),
-                        'image' => $l->primaryImage ? $l->primaryImage->url : ''
+                        'image' => $l->primary_image_url,
                     ];
                 });
             }

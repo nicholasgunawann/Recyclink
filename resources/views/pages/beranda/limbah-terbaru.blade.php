@@ -56,10 +56,10 @@
                     {{-- 1:1 Aspect Ratio Image Container --}}
                     <div class="relative w-full aspect-square bg-gray-100 overflow-hidden shrink-0">
                         <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
-                             src="{{ $listing->primaryImage?->url ?? '' }}"
+                             src="{{ $listing->primary_image_url ?: 'https://placehold.co/400x400?text=Limbah' }}"
                              alt="{{ $listing->title }}"
                              loading="lazy"
-                             onerror="this.parentElement.innerHTML='<div class=\'w-full h-full flex items-center justify-center bg-gray-100\'><i data-lucide=\'image\' class=\'w-8 h-8 text-gray-300\'></i></div>'" />
+                             onerror="this.src='https://placehold.co/400x400?text=Limbah'" />
 
                         {{-- Category badge overlay --}}
                         <span class="absolute top-2 left-2 bg-brand/90 backdrop-blur-xs text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wide shadow-xs">

@@ -90,5 +90,12 @@ class WasteListing extends Model
         return $this->category->short_name;
     }
 
+    // ponytail: reliable primary image URL with automatic fallback to first image in gallery
+    public function getPrimaryImageUrlAttribute(): string
+    {
+        $img = $this->primaryImage ?? $this->images->first();
+        return $img ? $img->url : '';
+    }
+
     public function incrementViewCount(): void { $this->increment('view_count'); }
 }

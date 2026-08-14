@@ -141,7 +141,7 @@
                         @foreach($listings as $l)
                         <a href="{{ route('marketplace.show', $l->id) }}?ref=store" class="group bg-transparent hover:bg-white rounded-xl overflow-hidden border border-gray-200/80 shadow-2xs hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-1 hover:border-brand/40 transition-all duration-300 flex flex-col h-full">
                             <div class="relative w-full aspect-square bg-gray-100 overflow-hidden shrink-0">
-                                <img src="{{ $l->primaryImage ? (str_starts_with($l->primaryImage->image_url, 'http') ? $l->primaryImage->image_url : asset('storage/'.$l->primaryImage->image_url)) : 'https://placehold.co/400x400?text=Limbah' }}" 
+                                <img src="{{ $l->primary_image_url ?: 'https://placehold.co/400x400?text=Limbah' }}" 
                                     alt="{{ $l->title }}" 
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
                                     onerror="this.src='https://placehold.co/400x400?text=Limbah'">
