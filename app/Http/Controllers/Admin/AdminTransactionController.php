@@ -30,15 +30,16 @@ class AdminTransactionController extends Controller implements HasMiddleware
         return view('admin.transactions.show', compact('order'));
     }
 
-    // ponytail: delete unpaid/pending order by admin
+    // ponytail: delete any order by admin
     public function destroy(Order $order)
     {
-        // Pastikan hanya transaksi yang belum dibayar / belum diproses yang boleh dihapus
-        if (in_array($order->order_status, [Order::STATUS_PAID, Order::STATUS_PROCESSING, Order::STATUS_COMPLETED])) {
-            return redirect()->back()->with('error', 'Transaksi yang sudah dibayar atau selesai tidak dapat dihapus.');
-        }
-
         \Illuminate\Support\Facades\DB::transaction(function () use ($order) {
+            if (method_exists($order, 'complaints')) {
+                $order->complaints()->delete();
+            }
+            if (method_exists($order, 'reviews')) {
+                $order->reviews()->delete();
+            }
             if ($order->payment) {
                 $order->payment()->delete();
             }

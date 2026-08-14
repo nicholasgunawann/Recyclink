@@ -28,15 +28,13 @@
             <span class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold border {{ $status['bg'] }}">
                 {{ $status['label'] }}
             </span>
-            @if(!in_array($order->order_status, ['paid', 'processing', 'completed']))
-                <form action="{{ route('admin.transactions.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi {{ $order->order_code }} yang belum selesai ini?');" class="inline" data-turbo="false">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="inline-flex items-center justify-center px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-bold text-xs rounded-xl bg-white transition-all cursor-pointer" title="Hapus Transaksi">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1"></i> Hapus Transaksi
-                    </button>
-                </form>
-            @endif
+            <form action="{{ route('admin.transactions.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi {{ $order->order_code }} ini?');" class="inline" data-turbo="false">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="inline-flex items-center justify-center px-3.5 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-bold text-xs rounded-xl bg-white transition-all cursor-pointer" title="Hapus Transaksi">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1.5"></i> Hapus Transaksi
+                </button>
+            </form>
         </div>
     </div>
 
