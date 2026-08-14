@@ -25,7 +25,7 @@ class MarketplaceController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
 
             if ($request->input('tab') === 'toko') {
-                $query = User::role('seller')->whereHas('sellerProfile')->with(['sellerProfile', 'wasteListings']);
+                $query = User::whereHas('sellerProfile')->with(['sellerProfile', 'wasteListings']);
                 
                 if ($request->filled('search') || $request->filled('q')) {
                     $search = $request->input('search') ?? $request->input('q');
@@ -62,11 +62,11 @@ class MarketplaceController extends Controller
                 
                 $sort = $request->input('sort', 'terbaru');
                 if ($sort === 'jarak-asc') {
-                    $query->whereHas('sellerProfile', function($sp) {
-                        $sp->orderBy('city', 'asc');
-                    });
+                    $query->join('seller_profiles', 'users.id', '=', 'seller_profiles.user_id')
+                          ->orderBy('seller_profiles.city', 'asc')
+                          ->select('users.*');
                 } else {
-                    $query->latest();
+                    $query->latest('users.id');
                 }
 
                 $paginator = $query->paginate(18);

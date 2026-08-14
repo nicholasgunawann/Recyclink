@@ -224,11 +224,14 @@
                     'Accept': 'application/json'
                 }
             });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const result = await res.json();
             
             const isProd = state.tab === 'produk';
-            document.getElementById('card-grid').classList.toggle('hidden', !isProd);
-            document.getElementById('toko-grid').classList.toggle('hidden', isProd);
+            const cardGrid = document.getElementById('card-grid');
+            const tokoGrid = document.getElementById('toko-grid');
+            if (cardGrid) cardGrid.classList.toggle('hidden', !isProd);
+            if (tokoGrid) tokoGrid.classList.toggle('hidden', isProd);
 
             if (isProd) {
                 renderCards(result.data, result.total);
@@ -238,6 +241,19 @@
             renderPagination(result.total, result.last_page);
         } catch (err) {
             console.error("Error fetching data:", err);
+            const isProd = state.tab === 'produk';
+            const targetGrid = document.getElementById(isProd ? 'card-grid' : 'toko-grid');
+            if (targetGrid) {
+                targetGrid.innerHTML = `
+                    <div class="col-span-full text-center py-16 border border-dashed border-gray-200 rounded-2xl bg-white p-8">
+                        <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-2 text-gray-400">
+                            <i data-lucide="alert-circle" class="w-6 h-6"></i>
+                        </div>
+                        <p class="text-sm font-bold text-gray-700">Gagal memuat data</p>
+                        <p class="text-xs text-gray-400 mt-1">Silakan coba beberapa saat lagi atau segarkan halaman.</p>
+                    </div>`;
+                if (window.lucide) lucide.createIcons();
+            }
         }
     }
 
@@ -508,8 +524,8 @@
             fetchData();
         };
 
-        el('tab-produk')?.addEventListener('click', () => toggleTabs('produk'));
-        el('tab-toko')?.addEventListener('click', () => toggleTabs('toko'));
+        if (el('tab-produk')) el('tab-produk').onclick = () => toggleTabs('produk');
+        if (el('tab-toko')) el('tab-toko').onclick = () => toggleTabs('toko');
 
         const debouncedRefresh = debounce(refresh, 350);
 
@@ -517,25 +533,28 @@
         const searchInput = el('search-input');
         const searchClear = el('btn-search-clear');
         
-        searchInput?.addEventListener('input', e => {
-            state.search = e.target.value;
-            searchClear.classList.toggle('hidden', !e.target.value);
-            state.page = 1;
-            showSkeletons(state.tab);
-            debouncedRefresh();
-        });
-
-        searchInput?.addEventListener('keydown', e => {
-            if (e.key === 'Enter') refresh();
-        });
+        if (searchInput) {
+            searchInput.oninput = e => {
+                state.search = e.target.value;
+                if (searchClear) searchClear.classList.toggle('hidden', !e.target.value);
+                state.page = 1;
+                showSkeletons(state.tab);
+                debouncedRefresh();
+            };
+            searchInput.onkeydown = e => {
+                if (e.key === 'Enter') refresh();
+            };
+        }
         
-        searchClear?.addEventListener('click', () => {
-            searchInput.value = '';
-            state.search = '';
-            searchClear.classList.add('hidden');
-            state.page = 1;
-            refresh();
-        });
+        if (searchClear) {
+            searchClear.onclick = () => {
+                if (searchInput) searchInput.value = '';
+                state.search = '';
+                searchClear.classList.add('hidden');
+                state.page = 1;
+                refresh();
+            };
+        }
 
         // Filter dropdown Tokopedia-style hover & click toggle
         const filterContainer = el('filter-dropdown-container');
@@ -558,25 +577,29 @@
             }, 200);
         }
 
-        filterContainer?.addEventListener('mouseenter', openFilterMenu);
-        filterContainer?.addEventListener('mouseleave', closeFilterMenu);
+        if (filterContainer) {
+            filterContainer.onmouseenter = openFilterMenu;
+            filterContainer.onmouseleave = closeFilterMenu;
+        }
 
-        filterTrigger?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isHidden = filterMenu?.classList.contains('hidden');
-            if (isHidden) openFilterMenu();
-            else closeFilterMenu();
-        });
+        if (filterTrigger) {
+            filterTrigger.onclick = (e) => {
+                e.stopPropagation();
+                const isHidden = filterMenu?.classList.contains('hidden');
+                if (isHidden) openFilterMenu();
+                else closeFilterMenu();
+            };
+        }
 
-        document.addEventListener('click', (e) => {
+        document.onclick = (e) => {
             if (!filterContainer?.contains(e.target)) {
                 closeFilterMenu();
             }
-        });
+        };
 
         // Category checkboxes
         document.querySelectorAll('.category-filter').forEach(cb => {
-            cb.addEventListener('change', e => {
+            cb.onchange = e => {
                 const val = e.target.value;
                 if (e.target.checked) {
                     if (!state.categories.includes(val)) state.categories.push(val);
@@ -587,31 +610,35 @@
                 state.page = 1;
                 showSkeletons(state.tab);
                 debouncedRefresh();
-            });
+            };
         });
 
-        el('search-lokasi')?.addEventListener('input', e => { state.searchLokasi = e.target.value; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); });
-        el('volume-min')?.addEventListener('input', e => { state.volumeMin = e.target.value ? parseFloat(e.target.value) : null; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); });
-        el('harga-min')?.addEventListener('input', e => { state.hargaMin = e.target.value ? parseInt(e.target.value) : null; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); });
-        el('harga-max')?.addEventListener('input', e => { state.hargaMax = e.target.value ? parseInt(e.target.value) : null; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); });
-        el('filter-status')?.addEventListener('change', e => { state.statusAvailable = e.target.checked; state.page = 1; refresh(); });
-        el('sort-select')?.addEventListener('change', e => { state.sort = e.target.value; state.page = 1; refresh(); });
+        if (el('search-lokasi')) el('search-lokasi').oninput = e => { state.searchLokasi = e.target.value; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); };
+        if (el('volume-min')) el('volume-min').oninput = e => { state.volumeMin = e.target.value ? parseFloat(e.target.value) : null; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); };
+        if (el('harga-min')) el('harga-min').oninput = e => { state.hargaMin = e.target.value ? parseInt(e.target.value) : null; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); };
+        if (el('harga-max')) el('harga-max').oninput = e => { state.hargaMax = e.target.value ? parseInt(e.target.value) : null; state.page = 1; showSkeletons(state.tab); debouncedRefresh(); };
+        if (el('filter-status')) el('filter-status').onchange = e => { state.statusAvailable = e.target.checked; state.page = 1; refresh(); };
+        if (el('sort-select')) el('sort-select').onchange = e => { state.sort = e.target.value; state.page = 1; refresh(); };
 
-        el('btn-apply-dropdown')?.addEventListener('click', () => {
-            filterMenu?.classList.add('hidden');
-            if (filterChevron) filterChevron.classList.remove('rotate-180');
-            refresh();
-        });
+        if (el('btn-apply-dropdown')) {
+            el('btn-apply-dropdown').onclick = () => {
+                filterMenu?.classList.add('hidden');
+                if (filterChevron) filterChevron.classList.remove('rotate-180');
+                refresh();
+            };
+        }
 
-        el('btn-reset-dropdown')?.addEventListener('click', () => {
-            state = { ...state, search: '', categories: [], searchLokasi: '', volumeMin: null, hargaMin: null, hargaMax: null, statusAvailable: true, page: 1 };
-            if (searchInput) searchInput.value = '';
-            if (searchClear) searchClear.classList.add('hidden');
-            document.querySelectorAll('.category-filter').forEach(cb => cb.checked = false);
-            ['search-lokasi', 'volume-min', 'harga-min', 'harga-max'].forEach(id => { if (el(id)) el(id).value = ''; });
-            if (el('filter-status')) el('filter-status').checked = true;
-            refresh();
-        });
+        if (el('btn-reset-dropdown')) {
+            el('btn-reset-dropdown').onclick = () => {
+                state = { ...state, search: '', categories: [], searchLokasi: '', volumeMin: null, hargaMin: null, hargaMax: null, statusAvailable: true, page: 1 };
+                if (searchInput) searchInput.value = '';
+                if (searchClear) searchClear.classList.add('hidden');
+                document.querySelectorAll('.category-filter').forEach(cb => cb.checked = false);
+                ['search-lokasi', 'volume-min', 'harga-min', 'harga-max'].forEach(id => { if (el(id)) el(id).value = ''; });
+                if (el('filter-status')) el('filter-status').checked = true;
+                refresh();
+            };
+        }
 
         refresh();
     }
