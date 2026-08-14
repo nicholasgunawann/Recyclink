@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'dompetx' => [
+        'mode' => env('DOMPETX_MODE', 'live'),
+        'api_key' => env('DOMPETX_API_KEY'),
+        'api_url' => env('DOMPETX_API_URL', 'https://api.dompetx.com/v1/payments'),
+        'merchant_id' => env('DOMPETX_MERCHANT_ID'),
+        'fixie_url' => env('FIXIE_URL'),
+        'quotaguardstatic_url' => env('QUOTAGUARDSTATIC_URL'),
+    ],
+
 ];

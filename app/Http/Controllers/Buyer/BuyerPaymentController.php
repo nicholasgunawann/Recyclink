@@ -80,13 +80,13 @@ class BuyerPaymentController extends Controller implements HasMiddleware
         }
 
         // ponytail: process payment via DompetX Direct API or Simulation
-        $apiKey = env('DOMPETX_API_KEY');
-        $dompetxMode = env('DOMPETX_MODE', 'live');
+        $apiKey = config('services.dompetx.api_key') ?: env('DOMPETX_API_KEY');
+        $dompetxMode = config('services.dompetx.mode') ?: env('DOMPETX_MODE', 'live');
 
         if (!empty($apiKey) && $dompetxMode !== 'simulation') {
             try {
                 // Gunakan Direct API agar user tetap di website kita (White-label)
-                $apiUrl = env('DOMPETX_API_URL', 'https://api.dompetx.com/v1/payments');
+                $apiUrl = config('services.dompetx.api_url') ?: (env('DOMPETX_API_URL') ?: 'https://api.dompetx.com/v1/payments');
                 $apiUrl = str_replace('/checkout', '', $apiUrl);
 
                 // Tambahkan suffix attempt untuk menghindari 409 duplicate transaction reference dari DompetX jika user mencoba bayar ulang
@@ -114,7 +114,7 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                 // Idempotency-Key wajib ada untuk mencegah duplikat transaksi
                 $idempotencyKey = 'checkout-' . $order->order_code . '-' . $timestamp;
 
-                $proxyUrl = env('FIXIE_URL') ?: env('QUOTAGUARDSTATIC_URL');
+                $proxyUrl = config('services.dompetx.fixie_url') ?: (config('services.dompetx.quotaguardstatic_url') ?: (env('FIXIE_URL') ?: env('QUOTAGUARDSTATIC_URL')));
                 $httpOptions = [];
                 if ($proxyUrl) {
                     $httpOptions['proxy'] = $proxyUrl;
