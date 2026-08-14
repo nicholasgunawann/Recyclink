@@ -28,11 +28,24 @@
             <span class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold border {{ $status['bg'] }}">
                 {{ $status['label'] }}
             </span>
+            @if(!in_array($order->order_status, ['paid', 'processing', 'completed']))
+                <form action="{{ route('admin.transactions.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi {{ $order->order_code }} yang belum selesai ini?');" class="inline" data-turbo="false">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="inline-flex items-center justify-center px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-bold text-xs rounded-xl bg-white transition-all cursor-pointer" title="Hapus Transaksi">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1"></i> Hapus Transaksi
+                    </button>
+                </form>
+            @endif
         </div>
     </div>
 
-    {{-- Main Grid --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    @if(session('error'))
+        <div class="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+            <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 mt-0.5 shrink-0"></i>
+            <p class="text-sm font-semibold text-red-700">{{ session('error') }}</p>
+        </div>
+    @endif
         
         {{-- Left column (Order Details, Items, Pickup Info) --}}
         <div class="lg:col-span-2 space-y-6">

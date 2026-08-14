@@ -316,6 +316,7 @@ Route::group([
     // Transaction Management
     Route::get('/transactions', [AdminTransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/{order}', [AdminTransactionController::class, 'show'])->name('transactions.show');
+    Route::delete('/transactions/{order}', [AdminTransactionController::class, 'destroy'])->name('transactions.destroy');
 
     // Complaint Management
     Route::get('/complaints', [AdminComplaintController::class, 'index'])->name('complaints.index');

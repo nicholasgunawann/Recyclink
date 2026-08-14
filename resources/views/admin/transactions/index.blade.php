@@ -9,8 +9,19 @@
     <p class="text-gray-600 mt-1">Pantau seluruh riwayat pemesanan dan transaksi pembayaran di platform Recyclink.</p>
 </div>
 
+@if(session('success'))
+    <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-2xl flex items-start gap-3">
+        <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mt-0.5 shrink-0"></i>
+        <p class="text-sm font-semibold text-green-700">{{ session('success') }}</p>
+    </div>
+@endif
 
-
+@if(session('error'))
+    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+        <i data-lucide="alert-circle" class="w-5 h-5 text-red-500 mt-0.5 shrink-0"></i>
+        <p class="text-sm font-semibold text-red-700">{{ session('error') }}</p>
+    </div>
+@endif
 
 <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
     @if($orders->isEmpty())
@@ -66,9 +77,20 @@
                                 {{ $order->created_at->format('d M Y, H:i') }}
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <a href="{{ route('admin.transactions.show', $order->id) }}" class="inline-flex items-center justify-center px-3 py-1.5 border border-gray-200 hover:border-brand hover:text-brand font-bold text-xs rounded-xl bg-white transition-all">
-                                    Detail
-                                </a>
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{{ route('admin.transactions.show', $order->id) }}" class="inline-flex items-center justify-center px-3 py-1.5 border border-gray-200 hover:border-brand hover:text-brand font-bold text-xs rounded-xl bg-white transition-all">
+                                        Detail
+                                    </a>
+                                    @if(!in_array($order->order_status, ['paid', 'processing', 'completed']))
+                                        <form action="{{ route('admin.transactions.destroy', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus transaksi {{ $order->order_code }} yang belum selesai ini?');" class="inline" data-turbo="false">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center justify-center px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-bold text-xs rounded-xl bg-white transition-all cursor-pointer" title="Hapus Transaksi">
+                                                <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1"></i> Hapus
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach
