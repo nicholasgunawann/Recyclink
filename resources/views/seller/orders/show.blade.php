@@ -156,15 +156,16 @@
                 </div>
 
                 {{-- Chat Buyer button --}}
-                @if($item)
-                    <form action="{{ route('conversations.start', $item->listing_id) }}" method="POST" class="w-full">
-                        @csrf
-                        <input type="hidden" name="message" value="Halo, saya menindaklanjuti pesanan Anda #{{ $order->order_code }}">
-                        <button type="submit" class="w-full py-2.5 bg-brand/10 hover:bg-brand/20 text-brand text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i> Chat Pembeli
-                        </button>
-                    </form>
-                @endif
+                <form action="{{ route('conversations.start-user', $order->buyer_id) }}" method="POST" class="w-full">
+                    @csrf
+                    @if($item)
+                        <input type="hidden" name="listing_id" value="{{ $item->listing_id }}">
+                    @endif
+                    <input type="hidden" name="message" value="Halo, saya menindaklanjuti pesanan Anda #{{ $order->order_code }}">
+                    <button type="submit" class="w-full py-2.5 bg-brand/10 hover:bg-brand/20 text-brand text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i data-lucide="message-circle" class="w-4 h-4"></i> Chat Pembeli
+                    </button>
+                </form>
             </div>
 
             {{-- Cost Breakdown --}}

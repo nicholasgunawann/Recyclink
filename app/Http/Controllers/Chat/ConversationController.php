@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Chat;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\Conversation;
 use App\Models\WasteListing;
 use App\Http\Requests\StartConversationRequest;
@@ -64,11 +65,16 @@ class ConversationController extends Controller implements HasMiddleware
         return view('chat.show', compact('conversation', 'messages'));
     }
 
-    // ponytail: start a new conversation
-    public function start(StartConversationRequest $request, WasteListing $wasteListing)
+    // ponytail: start a new conversation via listing
+    public function start(Request $request, WasteListing $wasteListing)
     {
         try {
-            $conversation = $this->chatService->startConversation(auth()->user(), $wasteListing, $request->input('message'));
+            $conversation = $this->chatService->startConversation(
+                auth()->user(),
+                $wasteListing,
+                $wasteListing->seller,
+                $request->input('message')
+            );
 
             if ($request->wantsJson()) {
                 return response()->json([
@@ -77,7 +83,37 @@ class ConversationController extends Controller implements HasMiddleware
                 ]);
             }
 
-            return redirect()->route('conversations.show', $conversation)->with('success', 'Conversation started.');
+            return redirect()->route('conversations.show', $conversation)->with('success', 'Percakapan dimulai.');
+        } catch (RecyclinkException $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => $e->getMessage()], 422);
+            }
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    // ponytail: start conversation directly with target user (e.g. from store profile or order)
+    public function startWithUser(Request $request, User $user)
+    {
+        try {
+            $listingId = $request->input('listing_id');
+            $listing = $listingId ? WasteListing::find($listingId) : null;
+
+            $conversation = $this->chatService->startConversation(
+                auth()->user(),
+                $listing,
+                $user,
+                $request->input('message')
+            );
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'conversation' => $conversation,
+                ]);
+            }
+
+            return redirect()->route('conversations.show', $conversation)->with('success', 'Percakapan dimulai.');
         } catch (RecyclinkException $e) {
             if ($request->wantsJson()) {
                 return response()->json(['error' => $e->getMessage()], 422);

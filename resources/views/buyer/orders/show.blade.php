@@ -219,11 +219,15 @@
                 </div>
                 <div class="px-5 pb-4">
                     @php $firstItem = $order->items->first(); @endphp
-                    @if($firstItem && $firstItem->listing)
-                    <a href="{{ route('conversations.start', $firstItem->listing->id) }}" class="block text-center text-sm font-bold border border-brand text-brand hover:bg-brand hover:text-white px-4 py-2 rounded-xl transition-colors">
-                        Chat Penjual
-                    </a>
-                    @endif
+                    <form action="{{ route('conversations.start-user', $order->seller_id) }}" method="POST" class="w-full">
+                        @csrf
+                        @if($firstItem && $firstItem->listing)
+                            <input type="hidden" name="listing_id" value="{{ $firstItem->listing->id }}">
+                        @endif
+                        <button type="submit" class="w-full text-center text-sm font-bold border border-brand text-brand hover:bg-brand hover:text-white px-4 py-2 rounded-xl transition-colors cursor-pointer">
+                            Chat Penjual
+                        </button>
+                    </form>
                 </div>
             </div>
             @endif

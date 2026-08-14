@@ -139,6 +139,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     // Chat & Conversations (Shared / Peer-based)
     Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
     Route::post('/listings/{wasteListing}/conversation', [ConversationController::class, 'start'])->name('conversations.start');
+    Route::match(['get', 'post'], '/users/{user}/conversation', [ConversationController::class, 'startWithUser'])->name('conversations.start-user');
     
     // Protected by conversation participant check
     Route::middleware('conversation.participant')->group(function () {

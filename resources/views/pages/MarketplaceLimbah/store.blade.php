@@ -85,7 +85,7 @@
                             </p>
                             <div class="flex flex-wrap gap-2 md:gap-3">
                                 @auth
-                                <form method="POST" action="{{ route('conversations.start', $user->id) }}">
+                                <form method="POST" action="{{ route('conversations.start-user', $user->id) }}">
                                     @csrf
                                     <button type="submit" class="bg-brand hover:bg-brand-hover text-white font-bold text-xs sm:text-sm px-4 py-2 rounded-xl transition-all shadow-xs flex items-center gap-2">
                                         <i data-lucide="message-circle" class="w-4 h-4"></i>

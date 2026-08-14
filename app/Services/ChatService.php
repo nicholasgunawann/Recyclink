@@ -20,40 +20,70 @@ class ChatService
         $this->notificationService = $notificationService;
     }
 
-    // ponytail: start a new conversation
-    public function startConversation(User $buyer, WasteListing $listing, ?string $message = null): Conversation
+    // ponytail: start a new conversation with a listing or user directly
+    public function startConversation(User $initiator, ?WasteListing $listing = null, ?User $targetUser = null, ?string $message = null): Conversation
     {
-        if ($listing->seller_id === $buyer->id) {
-            throw new UnauthorizedBusinessActionException("You cannot start a chat with yourself.");
+        if ($listing && !$targetUser) {
+            $targetUser = $listing->seller;
         }
 
-        return DB::transaction(function () use ($buyer, $listing, $message) {
-            $conversation = Conversation::firstOrCreate([
-                'listing_id' => $listing->id,
-                'buyer_id' => $buyer->id,
-                'seller_id' => $listing->seller_id,
-            ]);
+        if (!$targetUser) {
+            throw new UnauthorizedBusinessActionException("Pengguna tujuan chat tidak ditemukan.");
+        }
 
-            $conversation->update(['last_message_at' => now()]);
+        if ($initiator->id === $targetUser->id) {
+            throw new UnauthorizedBusinessActionException("Anda tidak dapat memulai chat dengan diri sendiri.");
+        }
+
+        // Tentukan buyer dan seller dalam relasi percakapan
+        if ($initiator->isSeller() && $targetUser->isBuyer()) {
+            $buyerId = $targetUser->id;
+            $sellerId = $initiator->id;
+        } else {
+            $buyerId = $initiator->id;
+            $sellerId = $targetUser->id;
+        }
+
+        return DB::transaction(function () use ($initiator, $targetUser, $listing, $buyerId, $sellerId, $message) {
+            // Cari percakapan yang sudah ada antara kedua pengguna ini
+            $query = Conversation::where(function($q) use ($buyerId, $sellerId) {
+                $q->where('buyer_id', $buyerId)->where('seller_id', $sellerId);
+            })->orWhere(function($q) use ($buyerId, $sellerId) {
+                $q->where('buyer_id', $sellerId)->where('seller_id', $buyerId);
+            });
+
+            if ($listing) {
+                $conversation = (clone $query)->where('listing_id', $listing->id)->first();
+            } else {
+                $conversation = $query->first();
+            }
+
+            if (!$conversation) {
+                $conversation = Conversation::create([
+                    'listing_id' => $listing?->id,
+                    'buyer_id' => $buyerId,
+                    'seller_id' => $sellerId,
+                    'last_message_at' => now(),
+                ]);
+            } else {
+                $conversation->update(['last_message_at' => now()]);
+            }
 
             if ($message) {
                 $conversation->messages()->create([
-                    'sender_id' => $buyer->id,
+                    'sender_id' => $initiator->id,
                     'message_text' => $message,
                     'message_type' => 'text',
                     'is_read' => false,
                 ]);
 
-                $seller = $listing->seller;
-                if ($seller) {
-                    $this->notificationService->sendToUser(
-                        $seller,
-                        "Pesan Baru dari {$buyer->name}",
-                        "{$buyer->name} mengirim pesan terkait '{$listing->title}': {$message}",
-                        "chat",
-                        $conversation->id
-                    );
-                }
+                $this->notificationService->sendToUser(
+                    $targetUser,
+                    "Pesan Baru dari {$initiator->name}",
+                    $message,
+                    "chat",
+                    $conversation->id
+                );
             }
 
             return $conversation;
