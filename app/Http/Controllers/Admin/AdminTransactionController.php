@@ -30,6 +30,23 @@ class AdminTransactionController extends Controller implements HasMiddleware
         return view('admin.transactions.show', compact('order'));
     }
 
+    // ponytail: verify & approve payment manually by admin
+    public function verifyPayment(Order $order)
+    {
+        $payment = $order->payment;
+        if (!$payment) {
+            return redirect()->back()->with('error', 'Data pembayaran tidak ditemukan.');
+        }
+
+        if ($payment->payment_status === \App\Models\Payment::STATUS_PAID) {
+            return redirect()->back()->with('info', 'Transaksi ini sudah lunas.');
+        }
+
+        app(\App\Services\PaymentService::class)->markAsPaid(auth()->user(), $payment);
+
+        return redirect()->route('admin.transactions.show', $order->id)->with('success', "Pembayaran transaksi {$order->order_code} berhasil diverifikasi dan ditandai LUNAS.");
+    }
+
     // ponytail: delete any order by admin
     public function destroy(Order $order)
     {

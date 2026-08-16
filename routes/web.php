@@ -261,6 +261,8 @@ Route::group([
             // Payments
             Route::get('/orders/{order}/payment/create', [BuyerPaymentController::class, 'create'])->name('orders.payment.create');
             Route::post('/orders/{order}/payment', [BuyerPaymentController::class, 'store'])->name('orders.payment.store');
+            Route::post('/orders/{order}/simulate-payment', [BuyerPaymentController::class, 'simulatePayment'])->name('orders.simulate-payment');
+            Route::post('/orders/{order}/upload-proof', [BuyerPaymentController::class, 'uploadProof'])->name('orders.upload-proof');
 
             // DompetX Simulation
             Route::get('/orders/{order}/dompetx', [\App\Http\Controllers\DompetxController::class, 'checkout'])->name('dompetx.checkout');
@@ -317,6 +319,7 @@ Route::group([
     // Transaction Management
     Route::get('/transactions', [AdminTransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/{order}', [AdminTransactionController::class, 'show'])->name('transactions.show');
+    Route::patch('/transactions/{order}/verify-payment', [AdminTransactionController::class, 'verifyPayment'])->name('transactions.verify-payment');
     Route::delete('/transactions/{order}', [AdminTransactionController::class, 'destroy'])->name('transactions.destroy');
 
     // Complaint Management

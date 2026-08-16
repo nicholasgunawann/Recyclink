@@ -157,25 +157,76 @@
             </div>
 
             {{-- Payment Status Info --}}
-            <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-3">
-                <h4 class="font-bold text-gray-900 text-base">Status Transfer & Bukti</h4>
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-gray-900 text-base">Status Pembayaran</h4>
+                    @if($order->payment && $order->payment->payment_status === 'paid')
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            LUNAS
+                        </span>
+                    @else
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                            MENUNGGU PEMBAYARAN
+                        </span>
+                    @endif
+                </div>
+
                 @if($order->payment)
-                    <div class="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-800 text-xs flex items-center gap-2">
-                        <i data-lucide="check-circle" class="w-4 h-4 shrink-0"></i>
-                        <span>Pembayaran Telah Diverifikasi</span>
+                    <div class="text-xs text-gray-600 space-y-1.5 p-3.5 bg-gray-50 rounded-xl border border-gray-100">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Metode:</span>
+                            <span class="font-bold text-gray-800 uppercase">{{ str_replace('_', ' ', $order->payment->payment_method) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Gateway:</span>
+                            <span class="font-semibold text-gray-700 uppercase">{{ $order->payment->payment_gateway ?? 'Manual' }}</span>
+                        </div>
+                        @if($order->payment->virtual_account_number)
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">No. VA:</span>
+                            <span class="font-mono font-bold text-gray-800">{{ $order->payment->virtual_account_number }}</span>
+                        </div>
+                        @endif
+                        @if($order->payment->paid_at)
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Waktu Bayar:</span>
+                            <span class="font-semibold text-gray-700">{{ \Carbon\Carbon::parse($order->payment->paid_at)->format('d M Y H:i') }}</span>
+                        </div>
+                        @endif
                     </div>
-                    @if($order->payment->payment_proof)
-                        <div class="mt-2">
-                            <p class="text-xs text-gray-400 font-semibold mb-1">Bukti Transfer:</p>
-                            <a href="{{ asset('storage/' . $order->payment->payment_proof) }}" target="_blank" class="block w-full border border-gray-200 hover:border-brand rounded-xl overflow-hidden shadow-sm group">
-                                <img src="{{ asset('storage/' . $order->payment->payment_proof) }}" alt="Bukti Pembayaran" class="w-full h-auto object-cover max-h-40 group-hover:scale-105 transition-transform">
+
+                    {{-- Bukti Transfer --}}
+                    @php
+                        $proofPath = null;
+                        if ($order->payment->payment_reference && str_starts_with($order->payment->payment_reference, 'payment_proofs/')) {
+                            $proofPath = $order->payment->payment_reference;
+                        }
+                    @endphp
+
+                    @if($proofPath)
+                        <div class="mt-3">
+                            <p class="text-xs text-gray-400 font-semibold mb-1.5 uppercase tracking-wider">Bukti Transfer Pembeli:</p>
+                            <a href="{{ asset('storage/' . $proofPath) }}" target="_blank" class="block w-full border border-gray-200 hover:border-brand rounded-xl overflow-hidden shadow-sm group">
+                                <img src="{{ asset('storage/' . $proofPath) }}" alt="Bukti Pembayaran" class="w-full h-auto object-cover max-h-48 group-hover:scale-105 transition-transform">
                             </a>
                         </div>
+                    @endif
+
+                    {{-- Tombol Verifikasi Pembayaran oleh Admin --}}
+                    @if($order->payment->payment_status !== 'paid')
+                        <form action="{{ route('admin.transactions.verify-payment', $order->id) }}" method="POST" onsubmit="return confirm('Verifikasi dan tandai transaksi ini sebagai LUNAS?');" class="pt-2">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                Verifikasi & Tandai Lunas
+                            </button>
+                        </form>
                     @endif
                 @else
                     <div class="p-3 bg-amber-50 border border-amber-100 rounded-xl text-amber-800 text-xs flex items-center gap-2">
                         <i data-lucide="clock" class="w-4 h-4 shrink-0"></i>
-                        <span>Menunggu Pembayaran</span>
+                        <span>Pembeli belum memilih metode pembayaran</span>
                     </div>
                 @endif
             </div>

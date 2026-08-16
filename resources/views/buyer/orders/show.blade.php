@@ -143,37 +143,116 @@
 
         {{-- Right: Summary --}}
         <div class="space-y-5">
-            {{-- Payment Instructions (VA/QRIS) --}}
-            @if($order->payment && in_array($order->payment->payment_status, ['pending']))
-                @if($order->payment->virtual_account_number || $order->payment->qris_url)
-                <div class="bg-white border border-brand/20 rounded-2xl shadow-sm overflow-hidden border-2">
-                    <div class="px-5 py-4 border-b border-gray-100 bg-brand/5">
-                        <h3 class="font-bold text-brand flex items-center gap-2"><i data-lucide="wallet" class="w-4 h-4"></i> Instruksi Pembayaran</h3>
+            {{-- Payment Instructions (VA / QRIS / Manual Bank Transfer) --}}
+            @if(in_array($order->order_status, ['waiting_payment', 'pending']) && $order->payment && $order->payment->payment_status === 'pending')
+                <div class="bg-white border-2 border-brand/20 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-gray-100 bg-brand/5 flex items-center justify-between">
+                        <h3 class="font-bold text-brand flex items-center gap-2 text-sm"><i data-lucide="wallet" class="w-4 h-4"></i> Instruksi Pembayaran</h3>
+                        @if($order->payment->payment_gateway === 'dompetx_sandbox')
+                            <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">SANDBOX</span>
+                        @endif
                     </div>
                     <div class="px-5 py-6 flex flex-col items-center text-center">
-                        <p class="text-sm text-gray-500 mb-1">Metode yang dipilih:</p>
+                        <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Metode Pembayaran</p>
                         <p class="text-sm font-bold uppercase text-gray-900 mb-4">{{ str_replace('_', ' ', $order->payment->payment_method) }}</p>
                         
+                        {{-- 1. Virtual Account --}}
                         @if($order->payment->virtual_account_number)
-                            <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex items-center justify-between gap-4 mt-2 w-full">
-                                <div>
-                                    <p class="text-xs text-gray-400 text-left mb-0.5">Nomor Virtual Account</p>
-                                    <span class="font-mono text-lg font-bold tracking-wider text-gray-900">{{ $order->payment->virtual_account_number }}</span>
+                            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 w-full text-left space-y-2">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div>
+                                        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Nomor Virtual Account</p>
+                                        <span class="font-mono text-lg font-bold tracking-wider text-gray-900">{{ $order->payment->virtual_account_number }}</span>
+                                    </div>
+                                    <button type="button" onclick="navigator.clipboard.writeText('{{ $order->payment->virtual_account_number }}'); alert('Nomor VA disalin!')" class="text-brand hover:bg-brand/10 p-2.5 rounded-xl border border-brand/20 transition-colors shrink-0" title="Salin Nomor VA">
+                                        <i data-lucide="copy" class="w-4 h-4"></i>
+                                    </button>
                                 </div>
-                                <button type="button" onclick="navigator.clipboard.writeText('{{ $order->payment->virtual_account_number }}'); alert('Nomor VA disalin!')" class="text-brand hover:bg-brand/10 p-2 rounded-lg transition-colors"><i data-lucide="copy" class="w-5 h-5"></i></button>
+                                <div class="pt-2 border-t border-gray-200/60 flex justify-between text-xs">
+                                    <span class="text-gray-500">Total Tagihan:</span>
+                                    <span class="font-bold text-brand">Rp {{ number_format((float)($order->total_amount ?? 0), 0, ',', '.') }}</span>
+                                </div>
                             </div>
-                            <p class="text-xs text-gray-400 mt-4 px-2">Gunakan nomor rekening di atas untuk melakukan transfer dari ATM, Internet Banking, atau Mobile Banking.</p>
+                            <p class="text-xs text-gray-400 mt-3 px-2">Bayar melalui ATM, Internet Banking, atau Mobile Banking sesuai nomor VA di atas.</p>
                         @endif
 
+                        {{-- 2. QRIS --}}
                         @if($order->payment->qris_url)
-                            <div class="mt-2 border border-gray-100 p-3 rounded-2xl inline-block bg-white shadow-sm">
-                                <img src="{{ $order->payment->qris_url }}" alt="QRIS Barcode" class="w-48 h-48 object-contain">
+                            <div class="p-3 bg-white border border-gray-200 rounded-2xl shadow-sm inline-block">
+                                <img src="{{ $order->payment->qris_url }}" alt="QRIS Barcode" class="w-48 h-48 object-contain rounded-xl">
                             </div>
-                            <p class="text-xs text-gray-400 mt-4 px-2">Scan kode QR di atas menggunakan aplikasi e-Wallet (OVO, GoPay, Dana) atau Mobile Banking Anda.</p>
+                            <p class="text-xs text-gray-500 mt-3 px-2 font-medium">Scan QRIS menggunakan <strong>ShopeePay, GoPay, OVO, DANA, BCA Mobile, Livin, atau BRImo</strong>.</p>
                         @endif
+
+                        {{-- 3. Manual Bank Transfer --}}
+                        @if(str_starts_with($order->payment->payment_method, 'manual_'))
+                            @php
+                                $bankDetails = [
+                                    'manual_bca'     => ['bank' => 'Bank BCA', 'rek' => '822-091-8899', 'name' => 'PT Recyclink Solusi Nusantara'],
+                                    'manual_mandiri' => ['bank' => 'Bank Mandiri', 'rek' => '137-00-1928374', 'name' => 'PT Recyclink Solusi Nusantara'],
+                                    'manual_bri'     => ['bank' => 'Bank BRI', 'rek' => '0341-01-000123-501', 'name' => 'PT Recyclink Solusi Nusantara'],
+                                ];
+                                $bank = $bankDetails[$order->payment->payment_method] ?? $bankDetails['manual_bca'];
+                            @endphp
+                            <div class="bg-gray-50 border border-gray-200 rounded-2xl p-4 w-full text-left space-y-2.5">
+                                <div>
+                                    <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Bank Tujuan</p>
+                                    <p class="font-bold text-gray-900 text-sm">{{ $bank['bank'] }}</p>
+                                </div>
+                                <div class="flex items-center justify-between gap-3 pt-1 border-t border-gray-200/60">
+                                    <div>
+                                        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Nomor Rekening</p>
+                                        <span class="font-mono text-base font-bold text-gray-900">{{ $bank['rek'] }}</span>
+                                    </div>
+                                    <button type="button" onclick="navigator.clipboard.writeText('{{ str_replace(['-', ' '], '', $bank['rek']) }}'); alert('Nomor Rekening disalin!')" class="text-brand hover:bg-brand/10 p-2 rounded-xl border border-brand/20 transition-colors shrink-0">
+                                        <i data-lucide="copy" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                                <div class="pt-1 border-t border-gray-200/60">
+                                    <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Atas Nama</p>
+                                    <p class="font-semibold text-gray-800 text-xs">{{ $bank['name'] }}</p>
+                                </div>
+                                <div class="pt-1 border-t border-gray-200/60 flex justify-between text-xs">
+                                    <span class="text-gray-500">Nominal Transfer:</span>
+                                    <span class="font-bold text-brand">Rp {{ number_format((float)($order->total_amount ?? 0), 0, ',', '.') }}</span>
+                                </div>
+                            </div>
+
+                            {{-- Form Upload Bukti Transfer --}}
+                            <div class="w-full mt-4 text-left">
+                                @if($order->payment->payment_reference && str_starts_with($order->payment->payment_reference, 'payment_proofs/'))
+                                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs flex items-center gap-2">
+                                        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                                        <span>Bukti transfer berhasil diunggah. Menunggu verifikasi admin.</span>
+                                    </div>
+                                @else
+                                    <form action="{{ route('buyer.orders.upload-proof', $order->id) }}" method="POST" enctype="multipart/form-data" class="space-y-2">
+                                        @csrf
+                                        <label class="block text-xs font-bold text-gray-700">Unggah Bukti Transfer</label>
+                                        <input type="file" name="payment_proof" accept="image/*" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand/10 file:text-brand hover:file:bg-brand/20 cursor-pointer" required>
+                                        <button type="submit" class="w-full py-2 bg-brand hover:bg-brand-hover text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                                            Kirim Bukti Transfer
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        @endif
+
+                        {{-- Sandbox Instant Simulation Button --}}
+                        <div class="w-full mt-5 pt-4 border-t border-gray-100 flex flex-col gap-2">
+                            <form action="{{ route('buyer.orders.simulate-payment', $order->id) }}" method="POST" class="w-full">
+                                @csrf
+                                <button type="submit" class="w-full py-2.5 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                                    <i data-lucide="play-circle" class="w-4 h-4"></i>
+                                    Simulasikan Pembayaran Berhasil (Sandbox)
+                                </button>
+                            </form>
+                            <a href="{{ route('buyer.orders.payment.create', $order->id) }}" class="text-xs font-semibold text-gray-500 hover:text-brand transition-colors text-center py-1">
+                                Ganti Metode Pembayaran
+                            </a>
+                        </div>
                     </div>
                 </div>
-                @endif
             @endif
 
             <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
