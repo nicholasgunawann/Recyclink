@@ -140,10 +140,12 @@
                         <span>Subtotal Produk</span>
                         <span class="font-semibold text-gray-800">Rp {{ number_format((float)($order->subtotal ?? 0), 0, ',', '.') }}</span>
                     </div>
+                    @if($order->platform_fee)
                     <div class="flex justify-between">
-                        <span>Biaya Penanganan (5%)</span>
+                        <span>Biaya Layanan Pembayaran</span>
                         <span class="font-semibold text-gray-800">Rp {{ number_format((float)($order->platform_fee ?? 0), 0, ',', '.') }}</span>
                     </div>
+                    @endif
                     <div class="flex justify-between">
                         <span>Biaya Pengiriman</span>
                         <span class="font-semibold text-gray-800">Rp {{ number_format((float)($order->shipping_cost ?? 0), 0, ',', '.') }}</span>

@@ -266,7 +266,7 @@
                     @endif
                     @if($order->platform_fee)
                     <div class="flex justify-between text-gray-600">
-                        <span>Biaya Platform</span>
+                        <span>Biaya Layanan Pembayaran</span>
                         <span class="font-semibold">Rp {{ number_format((float)($order->platform_fee ?? 0), 0, ',', '.') }}</span>
                     </div>
                     @endif
