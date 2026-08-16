@@ -30,34 +30,37 @@ class MarketplaceController extends Controller
                 if ($request->filled('search') || $request->filled('q')) {
                     $search = $request->input('search') ?? $request->input('q');
                     $query->where(function($q) use ($search) {
+                        // ponytail: LIKE hanya untuk free-text search user, tidak bisa dihindari
                         $q->where('name', 'like', '%' . $search . '%')
                           ->orWhereHas('sellerProfile', function($sp) use ($search) {
                               $sp->where('business_name', 'like', '%' . $search . '%')
-                                 ->orWhere('city', 'like', '%' . $search . '%')
-                                 ->orWhere('business_type', 'like', '%' . $search . '%');
+                                 ->orWhere('city', $search)
+                                 ->orWhere('business_type', $search);
                           });
                     });
                 }
 
                 if ($request->filled('lokasi')) {
+                    // ponytail: exact match karena kota dari dropdown/input yang sudah diketahui
                     $lokasi = $request->input('lokasi');
                     $query->whereHas('sellerProfile', function($q) use ($lokasi) {
-                        $q->where('city', 'like', '%' . $lokasi . '%');
+                        $q->where('city', $lokasi);
                     });
                 }
 
                 if ($request->has('categories')) {
-                    $catNames = (array)$request->input('categories');
-                    $query->whereHas('wasteListings', function($q) use ($catNames) {
-                        $q->whereHas('category', function($q2) use ($catNames) {
-                            $q2->where(function($subQ) use ($catNames) {
-                                foreach ($catNames as $cat) {
-                                    $subQ->orWhere('category_name', 'like', '%' . $cat . '%')
-                                         ->orWhere('slug', 'like', '%' . $cat . '%');
-                                }
+                    // ponytail: whereIn exact match via slug, value sudah dari checkbox DB
+                    $catSlugs = collect((array)$request->input('categories'))->map(fn($c) => strtolower(trim($c)))->filter()->all();
+                    if ($catSlugs) {
+                        $catIds = WasteCategory::whereIn('slug', $catSlugs)
+                            ->orWhereIn(\Illuminate\Support\Facades\DB::raw('LOWER(category_name)'), $catSlugs)
+                            ->pluck('id')->all();
+                        if ($catIds) {
+                            $query->whereHas('wasteListings', function($q) use ($catIds) {
+                                $q->whereIn('category_id', $catIds);
                             });
-                        });
-                    });
+                        }
+                    }
                 }
                 
                 $sort = $request->input('sort', 'terbaru');
@@ -90,6 +93,7 @@ class MarketplaceController extends Controller
 
                 if ($request->filled('search') || $request->filled('q')) {
                     $search = $request->input('search') ?? $request->input('q');
+                    // ponytail: LIKE hanya untuk free-text search, tidak bisa dihindari
                     $query->where(function($q) use ($search) {
                         $q->where('title', 'like', '%' . $search . '%')
                           ->orWhere('description', 'like', '%' . $search . '%');
@@ -97,18 +101,20 @@ class MarketplaceController extends Controller
                 }
 
                 if ($request->has('categories')) {
-                    $catNames = (array)$request->input('categories');
-                    $query->whereHas('category', function($q) use ($catNames) {
-                        $q->where(function($subQ) use ($catNames) {
-                            foreach ($catNames as $cat) {
-                                $subQ->orWhere('category_name', 'like', '%' . $cat . '%')
-                                     ->orWhere('slug', 'like', '%' . $cat . '%');
-                            }
-                        });
-                    });
+                    // ponytail: whereIn exact match via slug/category_name, bukan LIKE
+                    $catSlugs = collect((array)$request->input('categories'))->map(fn($c) => strtolower(trim($c)))->filter()->all();
+                    if ($catSlugs) {
+                        $catIds = WasteCategory::whereIn('slug', $catSlugs)
+                            ->orWhereIn(\Illuminate\Support\Facades\DB::raw('LOWER(category_name)'), $catSlugs)
+                            ->pluck('id')->all();
+                        if ($catIds) {
+                            $query->whereIn('category_id', $catIds);
+                        }
+                    }
                 }
                 if ($request->filled('lokasi')) {
-                    $query->where('city', 'like', '%' . $request->input('lokasi') . '%');
+                    // ponytail: exact match untuk kota
+                    $query->where('city', $request->input('lokasi'));
                 }
                 if ($request->filled('volume_min')) {
                     $query->where('quantity', '>=', max(0, (float)$request->input('volume_min')));
