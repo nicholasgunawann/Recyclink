@@ -138,14 +138,17 @@ class PaymentService
         }
     }
 
-    // ponytail: poll DompetX API untuk sinkronisasi status pembayaran jika webhook gagal/lambat
+    // ponytail: poll DompetX API untuk sinkronisasi status pembayaran realtime dari gateway
     public function syncFromGateway(Order $order): void
     {
         $payment = $order->payment;
         if (!$payment || $payment->payment_status !== Payment::STATUS_PENDING) {
             return;
         }
-        if ($payment->payment_gateway !== 'dompetx' || !$payment->gateway_transaction_id) {
+
+        // Ambil transaction ID dari gateway_transaction_id atau payment_reference
+        $transactionId = $payment->gateway_transaction_id ?: $payment->payment_reference;
+        if (!$transactionId || $payment->payment_gateway === 'manual') {
             return;
         }
 
@@ -156,8 +159,8 @@ class PaymentService
 
         try {
             $apiUrl = config('services.dompetx.api_url') ?: (env('DOMPETX_API_URL') ?: 'https://api.dompetx.com/v1/payments');
-            $apiUrl = rtrim(str_replace('/checkout', '', $apiUrl), '/');
-            $checkUrl = $apiUrl . '/' . $payment->gateway_transaction_id;
+            $baseUrl = rtrim(str_replace(['/checkout', '/detail'], '', $apiUrl), '/');
+            $checkUrl = $baseUrl . '/detail/' . $transactionId;
 
             $timestamp = (string) time();
             $signature = hash_hmac('sha256', $timestamp . '.', $apiKey);
@@ -166,7 +169,7 @@ class PaymentService
             $httpOptions = $proxyUrl ? ['proxy' => $proxyUrl] : [];
 
             $response = \Illuminate\Support\Facades\Http::withOptions($httpOptions)
-                ->timeout(5)
+                ->timeout(6)
                 ->connectTimeout(3)
                 ->withHeaders([
                     'X-DOMPAY-API-Key' => $apiKey,
@@ -194,3 +197,4 @@ class PaymentService
         }
     }
 }
+

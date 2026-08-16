@@ -148,9 +148,7 @@
                 <div class="bg-white border-2 border-brand/20 rounded-2xl shadow-sm overflow-hidden">
                     <div class="px-5 py-4 border-b border-gray-100 bg-brand/5 flex items-center justify-between">
                         <h3 class="font-bold text-brand flex items-center gap-2 text-sm"><i data-lucide="wallet" class="w-4 h-4"></i> Instruksi Pembayaran</h3>
-                        @if($order->payment->payment_gateway === 'dompetx_sandbox')
-                            <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">SANDBOX</span>
-                        @endif
+                        <span class="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">Menunggu Pembayaran</span>
                     </div>
                     <div class="px-5 py-6 flex flex-col items-center text-center">
                         <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Metode Pembayaran</p>
@@ -181,7 +179,11 @@
                             <div class="p-3 bg-white border border-gray-200 rounded-2xl shadow-sm inline-block">
                                 <img src="{{ $order->payment->qris_url }}" alt="QRIS Barcode" class="w-48 h-48 object-contain rounded-xl">
                             </div>
-                            <p class="text-xs text-gray-500 mt-3 px-2 font-medium">Scan QRIS menggunakan <strong>ShopeePay, GoPay, OVO, DANA, BCA Mobile, Livin, atau BRImo</strong>.</p>
+                            <div class="mt-3 w-full bg-brand/5 border border-brand/10 rounded-xl p-3 text-center">
+                                <p class="text-xs text-gray-500">Total yang harus dibayar</p>
+                                <p class="text-lg font-bold text-brand mt-0.5">Rp {{ number_format((float)($order->total_amount ?? 0), 0, ',', '.') }}</p>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-3 px-2 font-medium">Scan QRIS di atas menggunakan <strong>ShopeePay, GoPay, OVO, DANA, BCA Mobile, Livin by Mandiri, atau BRImo</strong>.</p>
                         @endif
 
                         {{-- 3. Manual Bank Transfer --}}
@@ -230,7 +232,7 @@
                                         @csrf
                                         <label class="block text-xs font-bold text-gray-700">Unggah Bukti Transfer</label>
                                         <input type="file" name="payment_proof" accept="image/*" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-brand/10 file:text-brand hover:file:bg-brand/20 cursor-pointer" required>
-                                        <button type="submit" class="w-full py-2 bg-brand hover:bg-brand-hover text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+                                        <button type="submit" class="w-full py-2 bg-brand hover:bg-brand-hover text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer">
                                             Kirim Bukti Transfer
                                         </button>
                                     </form>
@@ -238,16 +240,8 @@
                             </div>
                         @endif
 
-                        {{-- Sandbox Instant Simulation Button --}}
                         <div class="w-full mt-5 pt-4 border-t border-gray-100 flex flex-col gap-2">
-                            <form action="{{ route('buyer.orders.simulate-payment', $order->id) }}" method="POST" class="w-full">
-                                @csrf
-                                <button type="submit" class="w-full py-2.5 px-3 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition-all flex items-center justify-center gap-1.5 shadow-sm">
-                                    <i data-lucide="play-circle" class="w-4 h-4"></i>
-                                    Simulasikan Pembayaran Berhasil (Sandbox)
-                                </button>
-                            </form>
-                            <a href="{{ route('buyer.orders.payment.create', $order->id) }}" class="text-xs font-semibold text-gray-500 hover:text-brand transition-colors text-center py-1">
+                            <a href="{{ route('buyer.orders.payment.create', $order->id) }}" class="text-xs font-bold text-brand hover:underline text-center py-1">
                                 Ganti Metode Pembayaran
                             </a>
                         </div>

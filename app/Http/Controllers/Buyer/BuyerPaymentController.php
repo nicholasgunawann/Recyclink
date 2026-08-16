@@ -169,37 +169,23 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                     }
                     $isSuccess = true;
                 } else {
-                    \Illuminate\Support\Facades\Log::warning('DompetX Live unavailable, falling back to Sandbox Generator', [
+                    \Illuminate\Support\Facades\Log::error('DompetX Live Gateway Error', [
+                        'method' => $method,
                         'status' => $response->status(),
                         'response' => $responseData,
                     ]);
+
+                    $errMsg = 'Layanan ' . strtoupper($method) . ' dari bank partner gateway sedang mengalami kendala. Silakan gunakan QRIS atau Transfer Bank Manual.';
+                    return redirect()->back()->with('error', $errMsg);
                 }
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::warning('DompetX Connection Failed, using Sandbox Fallback', ['msg' => $e->getMessage()]);
+                \Illuminate\Support\Facades\Log::error('DompetX Connection Failed', ['msg' => $e->getMessage()]);
+                return redirect()->back()->with('error', 'Tidak dapat terhubung ke gateway pembayaran. Silakan coba metode QRIS atau Transfer Bank Manual.');
             }
         }
 
-        // 3. Seamless Sandbox Fallback jika DompetX Live error / mode sandbox
         if (!$isSuccess) {
-            $paymentData['payment_gateway'] = 'dompetx_sandbox';
-            $paymentData['gateway_transaction_id'] = 'SBX-' . time() . '-' . rand(1000, 9999);
-
-            if ($method === 'qris') {
-                // Generate standard dynamic QRIS barcode via public QR generator
-                $qrContent = '00020101021226680016ID.RECYCLINK.WWW01189360084500000283360215ID10265228495160303UME51390016ID.RECYCLINK.WWW0215ID10265228495165204601253033605405' . ((int)$order->total_amount) . '5802ID5915Recyclink+ID6015Jakarta+Selatan61051243062070703A016304E269';
-                $paymentData['qris_url'] = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrContent);
-            } else {
-                // Generate realistic Virtual Account number based on bank standard prefix
-                $prefixes = [
-                    'bca'     => '88000',
-                    'bni'     => '8277',
-                    'bri'     => '1604',
-                    'mandiri' => '89608',
-                    'bsi'     => '900',
-                ];
-                $pfx = $prefixes[$method] ?? '88000';
-                $paymentData['virtual_account_number'] = $pfx . substr(str_pad((string)$order->id, 4, '0', STR_PAD_LEFT) . rand(100000, 999999), 0, 11);
-            }
+            return redirect()->back()->with('error', 'Gagal memproses pembayaran. Silakan gunakan metode QRIS atau Transfer Bank.');
         }
 
         Payment::updateOrCreate(['order_id' => $order->id], $paymentData);
