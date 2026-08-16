@@ -67,7 +67,8 @@ class Order extends Model
     public static function generateOrderCode(): string
     {
         $prefix = 'RL-' . now()->format('Ym') . '-';
-        $last   = static::where('order_code', 'like', $prefix . '%')->lockForUpdate()->orderByDesc('id')->first();
+        // ponytail: withTrashed agar kode tidak bentrok dengan order yang sudah di-soft-delete
+        $last   = static::withTrashed()->where('order_code', 'like', $prefix . '%')->lockForUpdate()->orderByDesc('id')->first();
         return $prefix . str_pad($last ? (int) substr($last->order_code, -6) + 1 : 1, 6, '0', STR_PAD_LEFT);
     }
 
