@@ -137,4 +137,60 @@ class PaymentService
             $this->markAsFailed($payment);
         }
     }
+
+    // ponytail: poll DompetX API untuk sinkronisasi status pembayaran jika webhook gagal/lambat
+    public function syncFromGateway(Order $order): void
+    {
+        $payment = $order->payment;
+        if (!$payment || $payment->payment_status !== Payment::STATUS_PENDING) {
+            return;
+        }
+        if ($payment->payment_gateway !== 'dompetx' || !$payment->gateway_transaction_id) {
+            return;
+        }
+
+        $apiKey = config('services.dompetx.api_key') ?: env('DOMPETX_API_KEY');
+        if (!$apiKey) {
+            return;
+        }
+
+        try {
+            $apiUrl = config('services.dompetx.api_url') ?: (env('DOMPETX_API_URL') ?: 'https://api.dompetx.com/v1/payments');
+            $apiUrl = rtrim(str_replace('/checkout', '', $apiUrl), '/');
+            $checkUrl = $apiUrl . '/' . $payment->gateway_transaction_id;
+
+            $timestamp = (string) time();
+            $signature = hash_hmac('sha256', $timestamp . '.', $apiKey);
+
+            $proxyUrl = config('services.dompetx.fixie_url') ?: (config('services.dompetx.quotaguardstatic_url') ?: (env('FIXIE_URL') ?: env('QUOTAGUARDSTATIC_URL')));
+            $httpOptions = $proxyUrl ? ['proxy' => $proxyUrl] : [];
+
+            $response = \Illuminate\Support\Facades\Http::withOptions($httpOptions)
+                ->timeout(5)
+                ->connectTimeout(3)
+                ->withHeaders([
+                    'X-DOMPAY-API-Key' => $apiKey,
+                    'X-DOMPAY-Signature' => $signature,
+                    'X-DOMPAY-Timestamp' => $timestamp,
+                ])
+                ->get($checkUrl);
+
+            if (!$response->successful()) {
+                return;
+            }
+
+            $data = $response->json();
+            $status = strtoupper($data['status'] ?? $data['data']['status'] ?? '');
+
+            $systemUser = User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->first() ?: User::first();
+
+            if (in_array($status, ['SUCCESS', 'PAID', 'SETTLED', 'SUCCESSFUL', 'COMPLETED', 'BERHASIL'])) {
+                $this->markAsPaid($systemUser, $payment);
+            } elseif (in_array($status, ['FAILED', 'EXPIRED', 'CANCELED', 'CANCELLED', 'GAGAL'])) {
+                $this->markAsFailed($payment);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('DompetX status check failed', ['error' => $e->getMessage()]);
+        }
+    }
 }

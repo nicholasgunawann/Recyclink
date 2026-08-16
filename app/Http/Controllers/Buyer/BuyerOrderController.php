@@ -43,71 +43,11 @@ class BuyerOrderController extends Controller implements HasMiddleware
 
         $order->load(['seller', 'items.listing', 'payment', 'complaints']);
 
-        // ponytail: jika payment masih pending, cek status ke DompetX API langsung
-        $this->syncPaymentStatus($order);
+        // ponytail: sinkronisasi status pembayaran dari gateway jika masih pending
+        app(PaymentService::class)->syncFromGateway($order);
+        $order->refresh();
 
         return view('buyer.orders.show', compact('order'));
-    }
-
-    /**
-     * ponytail: poll DompetX API untuk sinkronisasi status pembayaran
-     * Jaga-jaga jika webhook gagal/lambat
-     */
-    private function syncPaymentStatus(Order $order): void
-    {
-        $payment = $order->payment;
-        if (!$payment || $payment->payment_status !== Payment::STATUS_PENDING) {
-            return;
-        }
-        if ($payment->payment_gateway !== 'dompetx' || !$payment->gateway_transaction_id) {
-            return;
-        }
-
-        $apiKey = config('services.dompetx.api_key') ?: env('DOMPETX_API_KEY');
-        if (!$apiKey) {
-            return;
-        }
-
-        try {
-            $apiUrl = config('services.dompetx.api_url') ?: (env('DOMPETX_API_URL') ?: 'https://api.dompetx.com/v1/payments');
-            $apiUrl = rtrim(str_replace('/checkout', '', $apiUrl), '/');
-            $checkUrl = $apiUrl . '/' . $payment->gateway_transaction_id;
-
-            $timestamp = (string) time();
-            $signature = hash_hmac('sha256', $timestamp . '.', $apiKey);
-
-            $proxyUrl = config('services.dompetx.fixie_url') ?: (config('services.dompetx.quotaguardstatic_url') ?: (env('FIXIE_URL') ?: env('QUOTAGUARDSTATIC_URL')));
-            $httpOptions = $proxyUrl ? ['proxy' => $proxyUrl] : [];
-
-            $response = \Illuminate\Support\Facades\Http::withOptions($httpOptions)
-                ->timeout(5)
-                ->connectTimeout(3)
-                ->withHeaders([
-                    'X-DOMPAY-API-Key' => $apiKey,
-                    'X-DOMPAY-Signature' => $signature,
-                    'X-DOMPAY-Timestamp' => $timestamp,
-                ])
-                ->get($checkUrl);
-
-            if (!$response->successful()) {
-                return;
-            }
-
-            $data = $response->json();
-            $status = strtoupper($data['status'] ?? $data['data']['status'] ?? '');
-
-            if (in_array($status, ['SUCCESS', 'PAID', 'SETTLED', 'SUCCESSFUL', 'COMPLETED', 'BERHASIL'])) {
-                $systemUser = \App\Models\User::whereHas('roles', fn($q) => $q->where('name', 'admin'))->first() ?: \App\Models\User::first();
-                app(PaymentService::class)->markAsPaid($systemUser, $payment);
-                $order->refresh();
-            } elseif (in_array($status, ['FAILED', 'EXPIRED', 'CANCELED', 'CANCELLED', 'GAGAL'])) {
-                app(PaymentService::class)->markAsFailed($payment);
-                $order->refresh();
-            }
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('DompetX status check failed', ['error' => $e->getMessage()]);
-            // gagal cek tidak masalah, jangan block halaman
-        }
     }
 
     // ponytail: place order on a listing
