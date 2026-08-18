@@ -171,11 +171,23 @@ class BuyerPaymentController extends Controller implements HasMiddleware
             $responseData = $response->json();
 
             if ($response->successful()) {
+                // Sinkronisasi biaya gateway aktual dari DompetX ke order
+                $actualTotal = $responseData['totalAmount'] ?? null;
+                $actualFee = $actualTotal ? ($actualTotal - $baseTotal) : 0;
+
+                if ($actualTotal && $actualTotal != $order->total_amount) {
+                    $order->update([
+                        'platform_fee' => $actualFee,
+                        'total_amount' => $actualTotal,
+                    ]);
+                    $order->refresh();
+                }
+
                 $paymentData = [
                     'payment_method' => $method,
                     'payment_gateway' => 'dompetx',
                     'payment_reference' => $responseData['id'] ?? $referenceCode,
-                    'amount' => $responseData['totalAmount'] ?? $baseTotal, // pakai totalAmount dari response DompetX (sudah termasuk fee gateway)
+                    'amount' => $actualTotal ?? $baseTotal,
                     'payment_status' => Payment::STATUS_PENDING,
                     'payment_number' => 'PAY-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
                     'gateway_transaction_id' => $responseData['id'] ?? null,
@@ -195,7 +207,7 @@ class BuyerPaymentController extends Controller implements HasMiddleware
             ]);
 
             $chkPayload = [
-                'amount' => (int) $order->total_amount,
+                'amount' => (int) $baseTotal,
                 'currency' => 'IDR',
                 'reference' => $referenceCode,
                 'callback_url' => route('webhook.dompetx'),
