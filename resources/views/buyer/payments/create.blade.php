@@ -28,7 +28,7 @@
     <div class="bg-white border border-gray-200 rounded-3xl shadow-sm overflow-hidden mb-6">
         <div class="px-6 py-5 bg-brand/5 border-b border-gray-100 flex items-center justify-between">
             <div>
-                <p class="text-xs text-gray-500 font-semibold mb-0.5">Total Tagihan</p>
+                <p class="text-xs text-gray-500 font-semibold mb-0.5">Total Tagihan Pesanan</p>
                 <p class="text-2xl font-bold text-brand" id="total-tagihan-display">Rp {{ number_format((float)($order->total_amount ?? 0), 0, ',', '.') }}</p>
             </div>
             <div class="text-right">
@@ -40,41 +40,75 @@
         @php
             $baseTotal = $order->subtotal + $order->shipping_cost;
             
-            // ponytail: DompetX official live / sandbox payment methods
+            // ponytail: All active channels from user's DompetX merchant dashboard
             $groups = [
                 'E-Wallet & QRIS (Cek Otomatis)' => [
                     'qris' => [
-                        'name' => 'QRIS (Semua Pembayaran)',
+                        'name' => 'QRIS',
+                        'code' => 'qris',
                         'fee' => ceil($baseTotal * 0.007) + 500,
+                        'fee_text' => '0.7% + Rp 500',
                         'min' => 1000,
+                        'max' => 8000000,
                         'icon' => 'qr-code',
-                        'desc' => 'Scan QRIS instan via BCA Mobile, Livin by Mandiri, BRImo, GoPay, ShopeePay, DANA, OVO',
-                        'badge' => 'Rekomendasi'
+                        'desc' => 'Scan QRIS instan via BCA Mobile, Livin, BRImo, GoPay, ShopeePay, DANA, OVO',
+                        'badge' => 'Biaya ke Pelanggan'
                     ],
                 ],
                 'Virtual Account (Cek Otomatis)' => [
+                    'bca' => [
+                        'name' => 'Virtual Account BCA',
+                        'code' => 'bca',
+                        'fee' => 4300,
+                        'fee_text' => 'Rp 4.300',
+                        'min' => 10000,
+                        'max' => 10000000,
+                        'icon' => 'building-2',
+                        'desc' => 'Bayar via m-BCA / KlikBCA / ATM BCA (Verifikasi Instan Otomatis)',
+                        'badge' => 'Aktif'
+                    ],
                     'bri' => [
                         'name' => 'Virtual Account BRI',
+                        'code' => 'bri',
                         'fee' => 3000,
-                        'min' => 10000,
+                        'fee_text' => 'Rp 3.000',
+                        'min' => 15000,
+                        'max' => 10000000,
                         'icon' => 'building-2',
                         'desc' => 'Bayar via BRImo / ATM BRI / Internet Banking (Verifikasi Instan Otomatis)',
-                        'badge' => 'Instan'
+                        'badge' => 'Aktif'
                     ],
                     'bni' => [
                         'name' => 'Virtual Account BNI',
+                        'code' => 'bni',
                         'fee' => 3000,
-                        'min' => 10000,
+                        'fee_text' => 'Rp 3.000',
+                        'min' => 15000,
+                        'max' => 1000000,
                         'icon' => 'building-2',
                         'desc' => 'Bayar via BNI Mobile Banking / ATM BNI / Internet Banking (Verifikasi Instan Otomatis)',
-                        'badge' => 'Instan'
+                        'badge' => 'Aktif'
+                    ],
+                    'bsi' => [
+                        'name' => 'Virtual Account BSI',
+                        'code' => 'bsi',
+                        'fee' => 3900,
+                        'fee_text' => 'Rp 3.900',
+                        'min' => 10000,
+                        'max' => 50000000,
+                        'icon' => 'building-2',
+                        'desc' => 'Bayar via BSI Mobile / ATM BSI / Internet Banking (Verifikasi Instan Otomatis)',
+                        'badge' => 'Aktif'
                     ],
                 ],
                 'Portal Pembayaran DompetX' => [
                     'dompetx_checkout' => [
                         'name' => 'Halaman Checkout DompetX',
+                        'code' => 'checkout',
                         'fee' => 3000,
+                        'fee_text' => 'Rp 3.000',
                         'min' => 10000,
+                        'max' => 50000000,
                         'icon' => 'external-link',
                         'desc' => 'Buka portal pembayaran resmi DompetX untuk memilih seluruh metode yang tersedia',
                         'badge' => 'Portal Resmi'
@@ -104,28 +138,34 @@
                         <div class="space-y-3">
                             @foreach($items as $key => $method)
                                 @php
-                                    $isEligible = $baseTotal >= $method['min'];
+                                    $isEligible = $baseTotal >= $method['min'] && $baseTotal <= $method['max'];
                                 @endphp
-                                <label class="relative flex items-center p-4 border rounded-2xl cursor-pointer transition-all method-label {{ $key === $firstAvailable ? 'border-brand bg-brand/5' : 'border-gray-200 hover:border-gray-300' }} {{ !$isEligible ? 'opacity-50 pointer-events-none' : '' }}">
+                                <label class="relative flex items-start p-4 border rounded-2xl cursor-pointer transition-all method-label {{ $key === $firstAvailable ? 'border-brand bg-brand/5' : 'border-gray-200 hover:border-gray-300' }} {{ !$isEligible ? 'opacity-50 pointer-events-none' : '' }}">
                                     <input type="radio" name="method_radio" value="{{ $key }}" data-fee="{{ $method['fee'] }}" class="hidden" {{ $key === $firstAvailable ? 'checked' : '' }} {{ !$isEligible ? 'disabled' : '' }} onchange="selectMethod(this)">
-                                    <div class="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center shadow-sm mr-4 shrink-0 text-brand">
+                                    
+                                    <div class="w-11 h-11 rounded-xl bg-white border border-gray-100 flex items-center justify-center shadow-sm mr-4 shrink-0 text-brand mt-0.5">
                                         <i data-lucide="{{ $method['icon'] }}" class="w-5 h-5"></i>
                                     </div>
+                                    
                                     <div class="flex-1 min-w-0 pr-2">
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <h5 class="font-bold text-gray-900 text-sm">{{ $method['name'] }}</h5>
-                                            @if(isset($method['badge']))
-                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $method['badge'] === 'Rekomendasi' ? 'bg-brand/10 text-brand' : 'bg-emerald-50 text-emerald-700' }}">{{ $method['badge'] }}</span>
-                                            @endif
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                                                {{ $method['badge'] }}
+                                            </span>
                                         </div>
-                                        <p class="text-xs text-gray-500 mt-0.5 leading-snug">{{ $method['desc'] }}</p>
-                                        @if($method['fee'] > 0)
-                                            <p class="text-xs font-semibold text-brand mt-1">+ Rp {{ number_format($method['fee'], 0, ',', '.') }} (Biaya Admin)</p>
-                                        @else
-                                            <p class="text-xs font-semibold text-emerald-600 mt-1">Gratis Biaya Admin</p>
-                                        @endif
+                                        <p class="text-xs text-gray-500 mt-1 leading-snug">{{ $method['desc'] }}</p>
+                                        
+                                        <div class="mt-2.5 flex items-center gap-3 text-[11px] text-gray-500 font-medium">
+                                            <span class="text-brand font-bold bg-brand/10 px-2 py-0.5 rounded-md">
+                                                Biaya: +Rp {{ number_format($method['fee'], 0, ',', '.') }} ({{ $method['fee_text'] }})
+                                            </span>
+                                            <span class="text-gray-400">Min: Rp {{ number_format($method['min'], 0, ',', '.') }}</span>
+                                        </div>
                                     </div>
-                                    <div class="w-5 h-5 rounded-full border-2 {{ $key === $firstAvailable ? 'border-brand bg-brand' : 'border-gray-300' }} flex items-center justify-center radio-indicator shrink-0">
+                                    
+                                    <div class="w-5 h-5 rounded-full border-2 {{ $key === $firstAvailable ? 'border-brand bg-brand' : 'border-gray-300' }} flex items-center justify-center radio-indicator shrink-0 mt-1">
                                         @if($key === $firstAvailable)
                                             <div class="w-2 h-2 rounded-full bg-white"></div>
                                         @endif
@@ -137,7 +177,23 @@
                 @endforeach
             </div>
 
-            <button type="submit" class="w-full h-14 mt-8 bg-brand hover:bg-brand-hover text-white font-bold text-base rounded-2xl shadow transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer">
+            {{-- Price Breakdown Summary --}}
+            <div class="mt-6 pt-4 border-t border-gray-100 space-y-2 text-xs text-gray-600 bg-gray-50/80 p-4 rounded-2xl border border-gray-100">
+                <div class="flex justify-between">
+                    <span>Subtotal Produk & Ongkir:</span>
+                    <span class="font-semibold text-gray-800">Rp {{ number_format($baseTotal, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Biaya Layanan Gateway (Biaya ke Pelanggan):</span>
+                    <span class="font-semibold text-brand" id="summary-fee-display">+ Rp 0</span>
+                </div>
+                <div class="border-t border-gray-200 pt-2 flex justify-between text-sm font-bold text-gray-900">
+                    <span>Total yang Harus Dibayar:</span>
+                    <span class="text-brand font-extrabold text-base" id="summary-total-display">Rp {{ number_format($baseTotal, 0, ',', '.') }}</span>
+                </div>
+            </div>
+
+            <button type="submit" class="w-full h-14 mt-6 bg-brand hover:bg-brand-hover text-white font-bold text-base rounded-2xl shadow transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer">
                 <span>Lanjutkan Pembayaran</span>
                 <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </button>
@@ -148,6 +204,8 @@
 <script>
     const baseTotal = {{ $baseTotal }};
     const totalElement = document.getElementById('total-tagihan-display');
+    const summaryFeeElement = document.getElementById('summary-fee-display');
+    const summaryTotalElement = document.getElementById('summary-total-display');
 
     function selectMethod(radio) {
         document.getElementById('selected-method').value = radio.value;
@@ -182,6 +240,12 @@
         const newTotal = baseTotal + fee;
         if (totalElement) {
             totalElement.innerHTML = 'Rp ' + newTotal.toLocaleString('id-ID');
+        }
+        if (summaryFeeElement) {
+            summaryFeeElement.innerHTML = '+ Rp ' + fee.toLocaleString('id-ID');
+        }
+        if (summaryTotalElement) {
+            summaryTotalElement.innerHTML = 'Rp ' + newTotal.toLocaleString('id-ID');
         }
     }
 

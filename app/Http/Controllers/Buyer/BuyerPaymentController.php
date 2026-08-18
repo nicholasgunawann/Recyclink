@@ -46,12 +46,14 @@ class BuyerPaymentController extends Controller implements HasMiddleware
         $method = strtolower($request->input('payment_method'));
         $baseTotal = $order->subtotal + $order->shipping_cost;
 
-        // Dynamic fee rules for DompetX supported methods
+        // Dynamic fee rules matching user's DompetX merchant dashboard
         $methods = [
-            'qris'             => ['fee' => ceil($baseTotal * 0.007) + 500, 'min' => 1000],
-            'bri'              => ['fee' => 3000, 'min' => 10000],
-            'bni'              => ['fee' => 3000, 'min' => 10000],
-            'dompetx_checkout' => ['fee' => 3000, 'min' => 10000],
+            'qris'             => ['fee' => ceil($baseTotal * 0.007) + 500, 'min' => 1000, 'max' => 8000000],
+            'bca'              => ['fee' => 4300, 'min' => 10000, 'max' => 10000000],
+            'bri'              => ['fee' => 3000, 'min' => 15000, 'max' => 10000000],
+            'bni'              => ['fee' => 3000, 'min' => 15000, 'max' => 1000000],
+            'bsi'              => ['fee' => 3900, 'min' => 10000, 'max' => 50000000],
+            'dompetx_checkout' => ['fee' => 3000, 'min' => 10000, 'max' => 50000000],
         ];
 
         if (!isset($methods[$method])) {
@@ -60,7 +62,11 @@ class BuyerPaymentController extends Controller implements HasMiddleware
 
         $rule = $methods[$method];
         if ($baseTotal < $rule['min']) {
-            return redirect()->back()->with('error', 'Total transaksi belum memenuhi minimum untuk metode pembayaran ini.');
+            return redirect()->back()->with('error', 'Total transaksi belum memenuhi minimum (Rp ' . number_format($rule['min'], 0, ',', '.') . ') untuk metode pembayaran ini.');
+        }
+
+        if (isset($rule['max']) && $baseTotal > $rule['max']) {
+            return redirect()->back()->with('error', 'Total transaksi melebihi batas maksimum (Rp ' . number_format($rule['max'], 0, ',', '.') . ') untuk metode pembayaran ini.');
         }
 
         // Update order platform fee & total
@@ -81,14 +87,67 @@ class BuyerPaymentController extends Controller implements HasMiddleware
 
         try {
             $isCheckoutPage = ($method === 'dompetx_checkout');
-            $apiUrl = $isCheckoutPage
-                ? 'https://api.dompetx.com/v1/payments/checkout'
-                : 'https://api.dompetx.com/v1/payments';
+            $proxyUrl = config('services.dompetx.fixie_url') ?: (config('services.dompetx.quotaguardstatic_url') ?: (env('FIXIE_URL') ?: env('QUOTAGUARDSTATIC_URL')));
+            $httpOptions = $proxyUrl ? ['proxy' => $proxyUrl] : [];
 
+            $timestamp = (string) time();
+            $idempotencyKey = 'checkout-' . $order->order_code . '-' . $timestamp;
+
+            if ($isCheckoutPage) {
+                // Panggil endpoint checkout DompetX
+                $payload = [
+                    'amount' => (int) $order->total_amount,
+                    'currency' => 'IDR',
+                    'reference' => $referenceCode,
+                    'callback_url' => route('webhook.dompetx'),
+                    'return_url' => route('buyer.orders.show', $order->id),
+                    'metadata' => [
+                        'order_id' => $order->id,
+                        'buyer_name' => auth()->user()->name,
+                    ],
+                ];
+
+                $body = json_encode($payload);
+                $signature = hash_hmac('sha256', $timestamp . '.' . $body, $apiKey);
+
+                $response = \Illuminate\Support\Facades\Http::withOptions($httpOptions)
+                    ->timeout(10)
+                    ->connectTimeout(5)
+                    ->withHeaders([
+                        'X-DOMPAY-API-Key' => $apiKey,
+                        'X-DOMPAY-Signature' => $signature,
+                        'X-DOMPAY-Timestamp' => $timestamp,
+                        'Idempotency-Key' => $idempotencyKey,
+                        'Content-Type' => 'application/json',
+                    ])
+                    ->post('https://api.dompetx.com/v1/payments/checkout', $payload);
+
+                $responseData = $response->json();
+
+                if ($response->successful() && !empty($responseData['payment_url'])) {
+                    Payment::updateOrCreate(['order_id' => $order->id], [
+                        'payment_method' => $method,
+                        'payment_gateway' => 'dompetx',
+                        'payment_reference' => $responseData['id'] ?? $referenceCode,
+                        'amount' => $order->total_amount,
+                        'payment_status' => Payment::STATUS_PENDING,
+                        'payment_number' => 'PAY-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
+                        'gateway_transaction_id' => $responseData['id'] ?? null,
+                        'gateway_response' => $responseData,
+                    ]);
+
+                    return redirect()->away($responseData['payment_url']);
+                }
+
+                return redirect()->back()->with('error', 'Gagal membuat sesi pembayaran DompetX: ' . ($responseData['message'] ?? 'Silakan coba lagi.'));
+            }
+
+            // Direct payment method (QRIS / BRI / BNI / BCA / BSI)
             $payload = [
                 'amount' => (int) $order->total_amount,
                 'currency' => 'IDR',
                 'reference' => $referenceCode,
+                'method' => strtoupper($method),
                 'callback_url' => route('webhook.dompetx'),
                 'return_url' => route('buyer.orders.show', $order->id),
                 'metadata' => [
@@ -97,17 +156,8 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                 ],
             ];
 
-            if (!$isCheckoutPage) {
-                $payload['method'] = strtoupper($method);
-            }
-
             $body = json_encode($payload);
-            $timestamp = (string) time();
             $signature = hash_hmac('sha256', $timestamp . '.' . $body, $apiKey);
-            $idempotencyKey = 'checkout-' . $order->order_code . '-' . $timestamp;
-
-            $proxyUrl = config('services.dompetx.fixie_url') ?: (config('services.dompetx.quotaguardstatic_url') ?: (env('FIXIE_URL') ?: env('QUOTAGUARDSTATIC_URL')));
-            $httpOptions = $proxyUrl ? ['proxy' => $proxyUrl] : [];
 
             $response = \Illuminate\Support\Facades\Http::withOptions($httpOptions)
                 ->timeout(10)
@@ -119,41 +169,78 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                     'Idempotency-Key' => $idempotencyKey,
                     'Content-Type' => 'application/json',
                 ])
-                ->post($apiUrl, $payload);
+                ->post('https://api.dompetx.com/v1/payments', $payload);
 
             $responseData = $response->json();
 
-            if (!$response->successful()) {
-                \Illuminate\Support\Facades\Log::error('DompetX Gateway Error', [
-                    'method' => $method,
-                    'status' => $response->status(),
-                    'response' => $responseData,
+            if ($response->successful()) {
+                $paymentData = [
+                    'payment_method' => $method,
+                    'payment_gateway' => 'dompetx',
+                    'payment_reference' => $responseData['id'] ?? $referenceCode,
+                    'amount' => $order->total_amount,
+                    'payment_status' => Payment::STATUS_PENDING,
+                    'payment_number' => 'PAY-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
+                    'gateway_transaction_id' => $responseData['id'] ?? null,
+                    'gateway_response' => $responseData,
+                    'virtual_account_number' => $responseData['vaData']['va_number'] ?? null,
+                    'qris_url' => $responseData['qrData']['qrImage'] ?? null,
+                ];
+
+                Payment::updateOrCreate(['order_id' => $order->id], $paymentData);
+                return redirect()->route('buyer.orders.show', $order->id)->with('success', 'Instruksi pembayaran berhasil dibuat.');
+            }
+
+            // Resilient Fallback: Jika direct API gateway merespons error (misal upstream BCA/BSI sedang busy), alihkan ke Checkout Page DompetX
+            \Illuminate\Support\Facades\Log::warning("Direct {$method} failed, falling back to DompetX checkout", [
+                'status' => $response->status(),
+                'response' => $responseData,
+            ]);
+
+            $chkPayload = [
+                'amount' => (int) $order->total_amount,
+                'currency' => 'IDR',
+                'reference' => $referenceCode,
+                'callback_url' => route('webhook.dompetx'),
+                'return_url' => route('buyer.orders.show', $order->id),
+                'metadata' => [
+                    'order_id' => $order->id,
+                    'buyer_name' => auth()->user()->name,
+                ],
+            ];
+            $chkBody = json_encode($chkPayload);
+            $chkSig = hash_hmac('sha256', $timestamp . '.' . $chkBody, $apiKey);
+
+            $chkResponse = \Illuminate\Support\Facades\Http::withOptions($httpOptions)
+                ->timeout(10)
+                ->connectTimeout(5)
+                ->withHeaders([
+                    'X-DOMPAY-API-Key' => $apiKey,
+                    'X-DOMPAY-Signature' => $chkSig,
+                    'X-DOMPAY-Timestamp' => $timestamp,
+                    'Idempotency-Key' => 'chk-' . $idempotencyKey,
+                    'Content-Type' => 'application/json',
+                ])
+                ->post('https://api.dompetx.com/v1/payments/checkout', $chkPayload);
+
+            $chkData = $chkResponse->json();
+
+            if ($chkResponse->successful() && !empty($chkData['payment_url'])) {
+                Payment::updateOrCreate(['order_id' => $order->id], [
+                    'payment_method' => $method,
+                    'payment_gateway' => 'dompetx',
+                    'payment_reference' => $chkData['id'] ?? $referenceCode,
+                    'amount' => $order->total_amount,
+                    'payment_status' => Payment::STATUS_PENDING,
+                    'payment_number' => 'PAY-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
+                    'gateway_transaction_id' => $chkData['id'] ?? null,
+                    'gateway_response' => $chkData,
                 ]);
 
-                return redirect()->back()->with('error', 'Gagal memproses pembayaran via DompetX: ' . ($responseData['message'] ?? 'Silakan coba lagi.'));
+                return redirect()->away($chkData['payment_url']);
             }
 
-            $paymentData = [
-                'payment_method' => $method,
-                'payment_gateway' => 'dompetx',
-                'payment_reference' => $responseData['id'] ?? $referenceCode,
-                'amount' => $order->total_amount,
-                'payment_status' => Payment::STATUS_PENDING,
-                'payment_number' => 'PAY-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
-                'gateway_transaction_id' => $responseData['id'] ?? null,
-                'gateway_response' => $responseData,
-                'virtual_account_number' => $responseData['vaData']['va_number'] ?? null,
-                'qris_url' => $responseData['qrData']['qrImage'] ?? null,
-            ];
-
-            Payment::updateOrCreate(['order_id' => $order->id], $paymentData);
-
-            // Jika memilih checkout page dan payment_url tersedia, redirect langsung ke halaman DompetX
-            if ($isCheckoutPage && !empty($responseData['payment_url'])) {
-                return redirect()->away($responseData['payment_url']);
-            }
-
-            return redirect()->route('buyer.orders.show', $order->id)->with('success', 'Instruksi pembayaran berhasil dibuat.');
+            return redirect()->back()->with('error', 'Gagal memproses pembayaran via DompetX: ' . ($responseData['message'] ?? 'Silakan coba lagi.'));
 
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('DompetX Connection Failed', ['msg' => $e->getMessage()]);
