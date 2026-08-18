@@ -140,7 +140,7 @@
                                 @php
                                     $isEligible = $baseTotal >= $method['min'] && $baseTotal <= $method['max'];
                                 @endphp
-                                <label class="relative flex items-start p-4 border rounded-2xl cursor-pointer transition-all method-label {{ $key === $firstAvailable ? 'border-brand bg-brand/5' : 'border-gray-200 hover:border-gray-300' }} {{ !$isEligible ? 'opacity-50 pointer-events-none' : '' }}">
+                                <label class="relative flex items-start p-4 border rounded-2xl cursor-pointer transition-all method-label {{ $key === $firstAvailable ? 'border-brand bg-brand/5' : 'border-gray-200 hover:border-gray-300' }} {{ !$isEligible ? 'opacity-60 bg-gray-50/70 cursor-not-allowed' : '' }}">
                                     <input type="radio" name="method_radio" value="{{ $key }}" data-fee="{{ $method['fee'] }}" class="hidden" {{ $key === $firstAvailable ? 'checked' : '' }} {{ !$isEligible ? 'disabled' : '' }} onchange="selectMethod(this)">
                                     
                                     <div class="w-11 h-11 rounded-xl bg-white border border-gray-100 flex items-center justify-center shadow-sm mr-4 shrink-0 text-brand mt-0.5">
@@ -150,18 +150,28 @@
                                     <div class="flex-1 min-w-0 pr-2">
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <h5 class="font-bold text-gray-900 text-sm">{{ $method['name'] }}</h5>
-                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-                                                {{ $method['badge'] }}
-                                            </span>
+                                            @if($isEligible)
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                                                    {{ $method['badge'] }}
+                                                </span>
+                                            @else
+                                                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                                                    Min. Rp {{ number_format($method['min'], 0, ',', '.') }}
+                                                </span>
+                                            @endif
                                         </div>
                                         <p class="text-xs text-gray-500 mt-1 leading-snug">{{ $method['desc'] }}</p>
                                         
-                                        <div class="mt-2.5 flex items-center gap-3 text-[11px] text-gray-500 font-medium">
+                                        <div class="mt-2.5 flex items-center gap-3 text-[11px] text-gray-500 font-medium flex-wrap">
                                             <span class="text-brand font-bold bg-brand/10 px-2 py-0.5 rounded-md">
                                                 Biaya: +Rp {{ number_format($method['fee'], 0, ',', '.') }} ({{ $method['fee_text'] }})
                                             </span>
-                                            <span class="text-gray-400">Min: Rp {{ number_format($method['min'], 0, ',', '.') }}</span>
+                                            @if(!$isEligible)
+                                                <span class="text-amber-600 font-semibold">
+                                                    Tagihan pesanan (Rp {{ number_format($baseTotal, 0, ',', '.') }}) di bawah minimum gateway
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
                                     
@@ -184,13 +194,14 @@
                     <span class="font-semibold text-gray-800">Rp {{ number_format($baseTotal, 0, ',', '.') }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span>Biaya Layanan Gateway (Biaya ke Pelanggan):</span>
+                    <span>Est. Biaya Gateway (Biaya ke Pelanggan):</span>
                     <span class="font-semibold text-brand" id="summary-fee-display">+ Rp 0</span>
                 </div>
                 <div class="border-t border-gray-200 pt-2 flex justify-between text-sm font-bold text-gray-900">
-                    <span>Total yang Harus Dibayar:</span>
+                    <span>Estimasi Total Tagihan:</span>
                     <span class="text-brand font-extrabold text-base" id="summary-total-display">Rp {{ number_format($baseTotal, 0, ',', '.') }}</span>
                 </div>
+                <p class="text-[10px] text-gray-400 text-center pt-1">* Total final sesuai nilai yang tertera pada halaman pembayaran DompetX</p>
             </div>
 
             <button type="submit" class="w-full h-14 mt-6 bg-brand hover:bg-brand-hover text-white font-bold text-base rounded-2xl shadow transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer">

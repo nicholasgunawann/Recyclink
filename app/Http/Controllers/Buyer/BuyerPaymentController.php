@@ -69,15 +69,11 @@ class BuyerPaymentController extends Controller implements HasMiddleware
             return redirect()->back()->with('error', 'Total transaksi melebihi batas maksimum (Rp ' . number_format($rule['max'], 0, ',', '.') . ') untuk metode pembayaran ini.');
         }
 
-        // Update order platform fee & total
-        $newPlatformFee = $rule['fee'];
-        $newTotalAmount = $order->subtotal + $order->shipping_cost + $newPlatformFee;
-
-        if ($order->total_amount != $newTotalAmount || $order->platform_fee != $newPlatformFee) {
-            $order->update([
-                'platform_fee' => $newPlatformFee,
-                'total_amount' => $newTotalAmount,
-            ]);
+        // ponytail: DompetX menambah biaya sendiri ke pelanggan (isFeeIncluded: false)
+        // Jadi kita kirim baseTotal saja, DompetX yang collect fee-nya
+        // platform_fee di order tetap 0, biaya gateway dihandle DompetX
+        if ($order->platform_fee != 0) {
+            $order->update(['platform_fee' => 0, 'total_amount' => $order->subtotal + $order->shipping_cost]);
             $order->refresh();
         }
 
@@ -96,7 +92,7 @@ class BuyerPaymentController extends Controller implements HasMiddleware
             if ($isCheckoutPage) {
                 // Panggil endpoint checkout DompetX
                 $payload = [
-                    'amount' => (int) $order->total_amount,
+                    'amount' => (int) $baseTotal, // kirim baseTotal, DompetX tambah fee sendiri
                     'currency' => 'IDR',
                     'reference' => $referenceCode,
                     'callback_url' => route('webhook.dompetx'),
@@ -129,7 +125,7 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                         'payment_method' => $method,
                         'payment_gateway' => 'dompetx',
                         'payment_reference' => $responseData['id'] ?? $referenceCode,
-                        'amount' => $order->total_amount,
+                        'amount' => $responseData['totalAmount'] ?? $baseTotal,
                         'payment_status' => Payment::STATUS_PENDING,
                         'payment_number' => 'PAY-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
                         'gateway_transaction_id' => $responseData['id'] ?? null,
@@ -143,8 +139,9 @@ class BuyerPaymentController extends Controller implements HasMiddleware
             }
 
             // Direct payment method (QRIS / BRI / BNI / BCA / BSI)
+            // Kirim baseTotal saja (tanpa fee), DompetX tambah fee sendiri ke pelanggan
             $payload = [
-                'amount' => (int) $order->total_amount,
+                'amount' => (int) $baseTotal,
                 'currency' => 'IDR',
                 'reference' => $referenceCode,
                 'method' => strtoupper($method),
@@ -178,7 +175,7 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                     'payment_method' => $method,
                     'payment_gateway' => 'dompetx',
                     'payment_reference' => $responseData['id'] ?? $referenceCode,
-                    'amount' => $order->total_amount,
+                    'amount' => $responseData['totalAmount'] ?? $baseTotal, // pakai totalAmount dari response DompetX (sudah termasuk fee gateway)
                     'payment_status' => Payment::STATUS_PENDING,
                     'payment_number' => 'PAY-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
                     'gateway_transaction_id' => $responseData['id'] ?? null,
