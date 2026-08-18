@@ -47,4 +47,20 @@ class MessageController extends Controller implements HasMiddleware
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
+
+    // ponytail: delete own message only
+    public function destroy(Request $request, Conversation $conversation, \App\Models\Message $message)
+    {
+        if ($message->sender_id !== auth()->id() || $message->conversation_id !== $conversation->id) {
+            if ($request->wantsJson())
+                return response()->json(['error' => 'Unauthorized'], 403);
+            return redirect()->back()->with('error', 'Tidak diizinkan.');
+        }
+
+        $message->delete();
+
+        if ($request->wantsJson())
+            return response()->json(['success' => true]);
+        return redirect()->back();
+    }
 }
