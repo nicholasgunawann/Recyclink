@@ -249,7 +249,13 @@ class BuyerPaymentController extends Controller implements HasMiddleware
                 return redirect()->away($chkData['payment_url']);
             }
 
-            return redirect()->back()->with('error', 'Gagal memproses pembayaran via DompetX: ' . ($responseData['message'] ?? 'Silakan coba lagi.'));
+            $errMsg = $responseData['message'] 
+                ?? ($responseData['error'] 
+                ?? ($chkData['message'] 
+                ?? ($chkData['error'] 
+                ?? (str_contains($response->body(), '404') ? 'Endpoint gateway DompetX sedang offline atau dalam pemeliharaan.' : 'Silakan periksa kembali metode pembayaran atau coba beberapa saat lagi.'))));
+
+            return redirect()->back()->with('error', 'Gagal memproses pembayaran via DompetX: ' . $errMsg);
 
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('DompetX Connection Failed', ['msg' => $e->getMessage()]);
