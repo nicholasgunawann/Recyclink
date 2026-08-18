@@ -40,29 +40,45 @@
         @php
             $baseTotal = $order->subtotal + $order->shipping_cost;
             
-            // Categories and methods
+            // ponytail: DompetX official live / sandbox payment methods
             $groups = [
-                'E-Wallet & QRIS (Otomatis)' => [
+                'E-Wallet & QRIS (Cek Otomatis)' => [
                     'qris' => [
                         'name' => 'QRIS (Semua Pembayaran)',
                         'fee' => ceil($baseTotal * 0.007) + 500,
                         'min' => 1000,
                         'icon' => 'qr-code',
-                        'desc' => 'Scan QR via ShopeePay, GoPay, OVO, DANA, BCA Mobile, Livin, BRImo',
+                        'desc' => 'Scan QRIS instan via BCA Mobile, Livin by Mandiri, BRImo, GoPay, ShopeePay, DANA, OVO',
                         'badge' => 'Rekomendasi'
                     ],
                 ],
                 'Virtual Account (Cek Otomatis)' => [
-                    'bri' => ['name' => 'Virtual Account BRI', 'fee' => 3000, 'min' => 15000, 'icon' => 'building-2', 'desc' => 'Bayar via BRImo / ATM BRI (Verifikasi Instan)'],
-                    'bca' => ['name' => 'Virtual Account BCA', 'fee' => 4300, 'min' => 10000, 'icon' => 'building-2', 'desc' => 'Bayar via m-BCA / KlikBCA / ATM BCA'],
-                    'bni' => ['name' => 'Virtual Account BNI', 'fee' => 3000, 'min' => 15000, 'icon' => 'building-2', 'desc' => 'Bayar via BNI Mobile Banking / ATM BNI'],
-                    'mandiri' => ['name' => 'Virtual Account Mandiri', 'fee' => 2900, 'min' => 10000, 'icon' => 'building-2', 'desc' => 'Bayar via Livin by Mandiri / ATM Mandiri'],
-                    'bsi' => ['name' => 'Virtual Account BSI', 'fee' => 3900, 'min' => 10000, 'icon' => 'building-2', 'desc' => 'Bayar via BSI Mobile / ATM BSI'],
+                    'bri' => [
+                        'name' => 'Virtual Account BRI',
+                        'fee' => 3000,
+                        'min' => 10000,
+                        'icon' => 'building-2',
+                        'desc' => 'Bayar via BRImo / ATM BRI / Internet Banking (Verifikasi Instan Otomatis)',
+                        'badge' => 'Instan'
+                    ],
+                    'bni' => [
+                        'name' => 'Virtual Account BNI',
+                        'fee' => 3000,
+                        'min' => 10000,
+                        'icon' => 'building-2',
+                        'desc' => 'Bayar via BNI Mobile Banking / ATM BNI / Internet Banking (Verifikasi Instan Otomatis)',
+                        'badge' => 'Instan'
+                    ],
                 ],
-                'Transfer Bank Manual (Dicek Admin)' => [
-                    'manual_bca' => ['name' => 'Transfer Bank BCA', 'fee' => 0, 'min' => 1000, 'icon' => 'credit-card', 'desc' => 'No. Rek 822-091-8899 a.n. PT Recyclink Solusi (Tanpa Biaya Admin)', 'badge' => 'Bebas Biaya'],
-                    'manual_mandiri' => ['name' => 'Transfer Bank Mandiri', 'fee' => 0, 'min' => 1000, 'icon' => 'credit-card', 'desc' => 'No. Rek 137-00-1928374 a.n. PT Recyclink Solusi (Tanpa Biaya Admin)', 'badge' => 'Bebas Biaya'],
-                    'manual_bri' => ['name' => 'Transfer Bank BRI', 'fee' => 0, 'min' => 1000, 'icon' => 'credit-card', 'desc' => 'No. Rek 0341-01-000123-501 a.n. PT Recyclink Solusi (Tanpa Biaya Admin)', 'badge' => 'Bebas Biaya'],
+                'Portal Pembayaran DompetX' => [
+                    'dompetx_checkout' => [
+                        'name' => 'Halaman Checkout DompetX',
+                        'fee' => 3000,
+                        'min' => 10000,
+                        'icon' => 'external-link',
+                        'desc' => 'Buka portal pembayaran resmi DompetX untuk memilih seluruh metode yang tersedia',
+                        'badge' => 'Portal Resmi'
+                    ],
                 ],
             ];
 
@@ -121,7 +137,7 @@
                 @endforeach
             </div>
 
-            <button type="submit" class="w-full h-14 mt-8 bg-brand hover:bg-brand-hover text-white font-bold text-base rounded-2xl shadow transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+            <button type="submit" class="w-full h-14 mt-8 bg-brand hover:bg-brand-hover text-white font-bold text-base rounded-2xl shadow transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer">
                 <span>Lanjutkan Pembayaran</span>
                 <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </button>
@@ -178,4 +194,3 @@
     });
 </script>
 @endsection
-
