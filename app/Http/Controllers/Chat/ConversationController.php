@@ -121,4 +121,18 @@ class ConversationController extends Controller implements HasMiddleware
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
+
+    // ponytail: hide conversation from current user's list (not a real delete — partner still sees it)
+    public function destroy(Request $request, Conversation $conversation)
+    {
+        if ($conversation->buyer_id !== auth()->id() && $conversation->seller_id !== auth()->id()) {
+            if ($request->wantsJson()) return response()->json(['error' => 'Unauthorized'], 403);
+            return redirect()->route('conversations.index');
+        }
+
+        $conversation->hideFor(auth()->id());
+
+        if ($request->wantsJson()) return response()->json(['success' => true]);
+        return redirect()->route('conversations.index')->with('success', 'Percakapan dihapus dari daftar.');
+    }
 }

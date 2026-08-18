@@ -145,6 +145,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     // Protected by conversation participant check
     Route::middleware('conversation.participant')->group(function () {
         Route::get('/conversations/{conversation}', [ConversationController::class, 'show'])->name('conversations.show');
+        Route::delete('/conversations/{conversation}', [ConversationController::class, 'destroy'])->name('conversations.destroy');
         Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('conversations.messages.store');
         Route::delete('/conversations/{conversation}/messages/{message}', [MessageController::class, 'destroy'])->name('conversations.messages.destroy');
     });

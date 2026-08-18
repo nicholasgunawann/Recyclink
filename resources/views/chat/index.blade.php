@@ -105,4 +105,35 @@
 
     @endif
 </div>
+
+{{-- Hidden form for DELETE conversation --}}
+<form id="conv-delete-form" method="POST" style="display:none">
+    @csrf
+    @method('DELETE')
+</form>
+
+@push('scripts')
+<script>
+function hideConversation(convId, btn) {
+    if (!confirm('Hapus percakapan dari daftar? Pesan tidak dihapus permanen.')) return;
+
+    const form = document.getElementById('conv-delete-form');
+    form.action = `/conversations/${convId}`;
+
+    fetch(form.action, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('[name="_token"]', form).value,
+            'Accept': 'application/json',
+        },
+        body: new FormData(form),
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            const item = btn.closest('[data-conv-id]');
+            item?.remove();
+        }
+    }).catch(() => { form.submit(); });
+}
+</script>
+@endpush
 @endsection

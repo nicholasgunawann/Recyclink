@@ -121,8 +121,11 @@ class ChatService
 
             $conversation->update(['last_message_at' => now()]);
 
+            // Unhide conversation for both parties when a new message is sent
+            $conversation->unhideFor($sender->id);
             $recipient = ($conversation->buyer_id === $sender->id) ? $conversation->seller : $conversation->buyer;
             if ($recipient) {
+                $conversation->unhideFor($recipient->id);
                 $this->notificationService->sendToUser(
                     $recipient,
                     "Pesan Baru dari {$sender->name}",
@@ -149,11 +152,17 @@ class ChatService
             ->update(['is_read' => true]);
     }
 
-    // ponytail: retrieve paginated conversations for a user
+    // ponytail: retrieve paginated conversations for a user, excluding hidden ones
     public function getUserConversations(User $user): LengthAwarePaginator
     {
-        return Conversation::where('buyer_id', $user->id)
-            ->orWhere('seller_id', $user->id)
+        return Conversation::where(function($q) use ($user) {
+                $q->where('buyer_id', $user->id)->orWhere('seller_id', $user->id);
+            })
+            ->where(function($q) use ($user) {
+                // exclude conversations where this user has hidden it
+                $q->whereNull('hidden_by')
+                  ->orWhereRaw('NOT JSON_CONTAINS(hidden_by, ?)', [json_encode($user->id)]);
+            })
             ->with(['buyer', 'seller', 'listing', 'latestMessage'])
             ->latest('last_message_at')
             ->paginate(20);
