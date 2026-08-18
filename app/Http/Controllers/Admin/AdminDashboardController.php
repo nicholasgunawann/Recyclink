@@ -35,6 +35,7 @@ class AdminDashboardController extends Controller implements HasMiddleware
                 ->get(),
             'pendingVerificationsCount' => \App\Models\WasteListing::where('verification_status', 'pending')->count(),
             'pendingComplaintsCount' => \App\Models\Complaint::where('status', 'pending')->count(),
+            'pendingWithdrawalsCount' => \App\Models\Withdrawal::where('status', 'pending')->count(),
         ];
         return view('admin.dashboard', $dashboardData);
     }

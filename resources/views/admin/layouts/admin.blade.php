@@ -55,6 +55,10 @@
                 <i data-lucide="credit-card" class="w-5 h-5"></i>
                 Transaksi
             </a>
+            <a href="{{ route('admin.withdrawals.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold {{ request()->routeIs('admin.withdrawals.*') ? 'bg-brand/10 text-brand' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} transition-colors">
+                <i data-lucide="wallet" class="w-5 h-5"></i>
+                Penarikan Saldo
+            </a>
             <a href="{{ route('admin.complaints.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold {{ request()->routeIs('admin.complaints.*') ? 'bg-brand/10 text-brand' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }} transition-colors">
                 <i data-lucide="alert-triangle" class="w-5 h-5"></i>
                 Komplain

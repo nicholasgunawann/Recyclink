@@ -42,6 +42,7 @@ use App\Http\Controllers\Admin\AdminTransactionController;
 use App\Http\Controllers\Admin\AdminComplaintController;
 use App\Http\Controllers\Admin\AdminEducationContentController;
 use App\Http\Controllers\Admin\AdminReportController;
+use App\Http\Controllers\Admin\AdminWithdrawalController;
 
 // Webhook Controller Import
 use App\Http\Controllers\Api\DompetxWebhookController;
@@ -321,6 +322,12 @@ Route::group([
     Route::get('/transactions/{order}', [AdminTransactionController::class, 'show'])->name('transactions.show');
     Route::patch('/transactions/{order}/verify-payment', [AdminTransactionController::class, 'verifyPayment'])->name('transactions.verify-payment');
     Route::delete('/transactions/{order}', [AdminTransactionController::class, 'destroy'])->name('transactions.destroy');
+    // Withdrawal Management
+    Route::get('/withdrawals', [AdminWithdrawalController::class, 'index'])->name('withdrawals.index');
+    Route::get('/withdrawals/{withdrawal}', [AdminWithdrawalController::class, 'show'])->name('withdrawals.show');
+    Route::patch('/withdrawals/{withdrawal}/approve', [AdminWithdrawalController::class, 'approve'])->name('withdrawals.approve');
+    Route::patch('/withdrawals/{withdrawal}/reject', [AdminWithdrawalController::class, 'reject'])->name('withdrawals.reject');
+    Route::patch('/withdrawals/{withdrawal}/pay', [AdminWithdrawalController::class, 'pay'])->name('withdrawals.pay');
 
     // Complaint Management
     Route::get('/complaints', [AdminComplaintController::class, 'index'])->name('complaints.index');

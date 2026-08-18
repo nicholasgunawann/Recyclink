@@ -133,16 +133,31 @@
             </div>
             
             <div class="p-6 flex-1 flex flex-col justify-start bg-gray-50/50">
-                @if(($pendingVerificationsCount ?? 0) === 0 && ($pendingComplaintsCount ?? 0) === 0)
+                @if(($pendingVerificationsCount ?? 0) === 0 && ($pendingComplaintsCount ?? 0) === 0 && ($pendingWithdrawalsCount ?? 0) === 0)
                     <div class="flex flex-col items-center justify-center text-center py-10 my-auto">
                         <div class="w-20 h-20 bg-white rounded-full shadow-sm flex items-center justify-center mb-5 relative">
                             <i data-lucide="check-circle-2" class="w-10 h-10 text-emerald-400"></i>
                         </div>
                         <h5 class="text-lg text-gray-900 font-bold mb-2">Semua Bersih!</h5>
-                        <p class="text-gray-500">Tidak ada limbah yang membutuhkan verifikasi atau komplain tertunda saat ini.</p>
+                        <p class="text-gray-500">Tidak ada limbah verifikasi, komplain, atau penarikan saldo tertunda saat ini.</p>
                     </div>
                 @else
                     <div class="space-y-4">
+                        @if(($pendingWithdrawalsCount ?? 0) > 0)
+                            <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="wallet" class="w-5 h-5 text-emerald-600"></i>
+                                    <div>
+                                        <h6 class="font-bold text-emerald-900 text-sm">Penarikan Saldo Penjual</h6>
+                                        <p class="text-xs text-emerald-700">{{ $pendingWithdrawalsCount }} ajuan menunggu persetujuan/transfer</p>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.withdrawals.index', ['status' => 'pending']) }}" class="px-3 py-1.5 bg-emerald-600 text-white font-bold text-xs rounded-lg hover:bg-emerald-700 transition-colors">
+                                    Tinjau
+                                </a>
+                            </div>
+                        @endif
+
                         @if(($pendingVerificationsCount ?? 0) > 0)
                             <div class="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
                                 <div class="flex items-center gap-3">
