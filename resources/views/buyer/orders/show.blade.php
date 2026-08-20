@@ -249,13 +249,13 @@
                         <span>Subtotal</span>
                         <span class="font-semibold">Rp {{ number_format((float)($order->subtotal ?? $order->total_amount ?? 0), 0, ',', '.') }}</span>
                     </div>
-                    @if($order->shipping_cost)
+                    @if((float)($order->shipping_cost ?? 0) > 0)
                     <div class="flex justify-between text-gray-600">
                         <span>Ongkos Kirim</span>
                         <span class="font-semibold">Rp {{ number_format((float)($order->shipping_cost ?? 0), 0, ',', '.') }}</span>
                     </div>
                     @endif
-                    @if($order->platform_fee)
+                    @if((float)($order->platform_fee ?? 0) > 0)
                     <div class="flex justify-between text-gray-600">
                         <span>Biaya Layanan Pembayaran</span>
                         <span class="font-semibold">Rp {{ number_format((float)($order->platform_fee ?? 0), 0, ',', '.') }}</span>
